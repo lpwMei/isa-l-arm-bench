@@ -88,6 +88,38 @@ def generate(source, output, variant):
                              r'gf_nvect_dot_prod_sve_compact(\1);', text)
         assert count == 10, count
         path.write_text(text)
+    elif variant == 'adaptive':
+        path = output / KERNEL
+        text = path.read_text()
+        text = text.replace('int pos = 0;', '''int pos = 0;
+        // Four batches are beneficial for one/two outputs. Larger output groups
+        // need two batches to keep the live vector set within the register file.
+        const int batches = nvect <= 2 ? 4 : 2;''', 1)
+        text = text.replace('int is_all_one[7] = { 0 };', 'int is_all_one[7] = { 0 };\n        int needs_tables = 0;', 1)
+        text = text.replace('is_all_one[d] = is_dest_coeff_all_one(gftbls, vlen, d);',
+                            'is_all_one[d] = is_dest_coeff_all_one(gftbls, vlen, d);\n                needs_tables |= !is_all_one[d];', 1)
+        start = text.index('                        for (int d = 0; d < nvect; d++) {')
+        end = text.index('\n\n                        // Process each destination', start)
+        original_extract = text[start:end]
+        compact_extract = '''                        if (needs_tables) {
+                                src_lo0 = svand_x(predicate_0, src_data0, mask0f);
+                                src_hi0 = svlsr_x(predicate_0, src_data0, 4);
+                                src_lo1 = svand_x(predicate_1, src_data1, mask0f);
+                                src_hi1 = svlsr_x(predicate_1, src_data1, 4);
+                                src_lo2 = svand_x(predicate_2, src_data2, mask0f);
+                                src_hi2 = svlsr_x(predicate_2, src_data2, 4);
+                                src_lo3 = svand_x(predicate_3, src_data3, mask0f);
+                                src_hi3 = svlsr_x(predicate_3, src_data3, 4);
+                        }'''
+        text = text[:start] + '                        if (nvect > 2) {\n' + '\n'.join('        ' + line for line in compact_extract.splitlines()) + '\n                        } else {\n' + '\n'.join('        ' + line for line in original_extract.splitlines()) + '\n                        }' + text[end:]
+        text, count = re.subn(r'(                        svst1_u8\(predicate_2,[^\n]+\n                        svst1_u8\(predicate_3,[^\n]+)',
+                             lambda m: '                        if (batches == 4) {\n' + '\n'.join('        ' + line for line in m[1].splitlines()) + '\n                        }', text)
+        assert count == 7
+        text = text.replace('pos += sve_len * 4;', 'pos += sve_len * batches;')
+        text = text.replace('const svbool_t predicate_true = svptrue_b8();', '''// TBL indices are nibbles: load exactly the 16-byte half-table,
+        // including when the hardware vector length exceeds 128 bits.
+        const svbool_t predicate_true = svptrue_pat_b8(SV_VL16);''', 1)
+        path.write_text(text)
     elif variant == 'group2':
         path = output / HIGHLEVEL
         text = path.read_text()
@@ -115,7 +147,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('source', type=Path)
     p.add_argument('output', type=Path)
-    p.add_argument('variant', choices=['compact1', 'compact2', 'group2'])
+    p.add_argument('variant', choices=['compact1', 'compact2', 'adaptive', 'group2'])
     a = p.parse_args()
     generate(a.source, a.output, a.variant)
 
