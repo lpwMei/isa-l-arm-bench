@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sys/auxv.h>
 #include <sys/mman.h>
+#include <sys/prctl.h>
 #include <unistd.h>
 #include <asm/hwcap.h>
 #include "erasure_code.h"
@@ -48,9 +49,15 @@ int main(void)
         if (!(getauxval(AT_HWCAP) & HWCAP_SVE) || !(getauxval(AT_HWCAP2) & HWCAP2_SVE2)) {
                 fprintf(stderr, "Both SVE and SVE2 required for this test\n"); return 2;
         }
+        printf("SVE vector length: %d bytes\n", prctl(PR_SVE_GET_VL) & PR_SVE_VL_LEN_MASK);
+#ifdef EC_BOUNDARY_QUICK
+        const int lengths[] = {0, 1, 15, 16, 17, 31, 32, 33, 47, 63, 64, 65, 127, 128, 129, 255, 257};
+        const int ks[] = {1, 2, 10};
+#else
         const int lengths[] = {0, 1, 15, 16, 17, 31, 32, 33, 47, 63, 64, 65,
                                127, 128, 129, 255, 257, 4095, 4096, 4097, 65536};
         const int ks[] = {1, 2, 3, 10, 16, 31};
+#endif
         encode_fn encoders[] = {ec_encode_data, ec_encode_data_sve, ec_encode_data_sve2};
         const char *names[] = {"dispatch", "sve", "sve2"};
         dot_fn direct[2][6] = {
