@@ -88,7 +88,7 @@ def generate(source, output, variant):
                              r'gf_nvect_dot_prod_sve_compact(\1);', text)
         assert count == 10, count
         path.write_text(text)
-    elif variant == 'adaptive':
+    elif variant in ('adaptive', 'adaptive_fused'):
         path = output / KERNEL
         text = path.read_text()
         text = text.replace('int pos = 0;', '''int pos = 0;
@@ -120,6 +120,23 @@ def generate(source, output, variant):
         // including when the hardware vector length exceeds 128 bits.
         const svbool_t predicate_true = svptrue_pat_b8(SV_VL16);''', 1)
         path.write_text(text)
+        if variant == 'adaptive_fused':
+            path = output / HIGHLEVEL
+            text = path.read_text()
+            for suffix in ('sve', 'sve2'):
+                start = text.index(f'ec_encode_data_{suffix}_impl(')
+                end = text.index('\n}\n', start)
+                section = text[start:end]
+                section, count = re.subn(r'        case 7:\n.*?(?=        case 5:)', f'''        case 7:
+                gf_7vect_dot_prod_{suffix}(len, k, g_tbls, data, coding);
+                break;
+        case 6:
+                gf_6vect_dot_prod_{suffix}(len, k, g_tbls, data, coding);
+                break;
+''', section, flags=re.S)
+                assert count == 1
+                text = text[:start] + section + text[end:]
+            path.write_text(text)
     elif variant == 'group2':
         path = output / HIGHLEVEL
         text = path.read_text()
@@ -147,7 +164,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('source', type=Path)
     p.add_argument('output', type=Path)
-    p.add_argument('variant', choices=['compact1', 'compact2', 'adaptive', 'group2'])
+    p.add_argument('variant', choices=['compact1', 'compact2', 'adaptive', 'adaptive_fused', 'group2'])
     a = p.parse_args()
     generate(a.source, a.output, a.variant)
 
