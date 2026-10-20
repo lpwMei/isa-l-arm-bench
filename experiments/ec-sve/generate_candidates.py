@@ -88,6 +88,16 @@ def generate(source, output, variant):
                              r'gf_nvect_dot_prod_sve_compact(\1);', text)
         assert count == 10, count
         path.write_text(text)
+    elif variant == 'table4':
+        path = output / KERNEL
+        text = path.read_text()
+        text = text.replace('const svbool_t predicate_true = svptrue_b8();',
+                            'const svbool_t predicate_true = svptrue_pat_b8(SV_VL16);', 1)
+        text = text.replace('for (int d = 0; d < nvect && d < 7; d++) {',
+                            'for (int d = 0; nvect <= 2 && d < nvect; d++) {', 1)
+        text = text.replace('if (!is_all_one[d]) {', 'if (nvect > 2 || !is_all_one[d]) {', 1)
+        text = text.replace('if (is_all_one[d]) {', 'if (nvect <= 2 && is_all_one[d]) {', 1)
+        path.write_text(text)
     elif variant in ('adaptive', 'adaptive_fused'):
         path = output / KERNEL
         text = path.read_text()
@@ -164,7 +174,7 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('source', type=Path)
     p.add_argument('output', type=Path)
-    p.add_argument('variant', choices=['compact1', 'compact2', 'adaptive', 'adaptive_fused', 'group2'])
+    p.add_argument('variant', choices=['compact1', 'compact2', 'adaptive', 'adaptive_fused', 'table4', 'group2'])
     a = p.parse_args()
     generate(a.source, a.output, a.variant)
 
