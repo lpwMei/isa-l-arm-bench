@@ -1,0 +1,476 @@
+{
+  "run_url": "https://github.com/lpwMei/isa-l-arm-bench/actions/runs/39434973237",
+  "artifact_sha256": "c888c43efdc66eb0a7560859fe6e2ce2ffc3237bf515265507222f856b70f897",
+  "baseline": "8fa1e72fee7338fcfbf829b00f2f407631bd2dba",
+  "files": {
+    "candidate.patch": {
+      "sha256": "0716a190d80c0872ec66610520f79147d0e7b0fb16ed638e03d87aa6b744a7e2",
+      "text": "--- a/erasure_code/aarch64/gf_nvect_dot_prod_sve.c\n+++ b/erasure_code/aarch64/gf_nvect_dot_prod_sve.c\n@@ -81,13 +81,13 @@\n                 return;\n \n         const svuint8_t mask0f = svdup_u8(0x0f);\n-        const svbool_t predicate_true = svptrue_b8();\n+        const svbool_t predicate_true = svptrue_pat_b8(SV_VL16);\n         int sve_len = svcntb();\n         int pos = 0;\n \n         // 4x unrolled main loop - SVE predicates handle ALL remaining data automatically\n         int is_all_one[7] = { 0 };\n-        for (int d = 0; d < nvect && d < 7; d++) {\n+        for (int d = 0; nvect <= 2 && d < nvect; d++) {\n                 is_all_one[d] = is_dest_coeff_all_one(gftbls, vlen, d);\n         }\n \n@@ -150,7 +150,7 @@\n                         svuint8_t src_lo2 = svdup_u8(0), src_hi2 = svdup_u8(0);\n                         svuint8_t src_lo3 = svdup_u8(0), src_hi3 = svdup_u8(0);\n                         for (int d = 0; d < nvect; d++) {\n-                                if (!is_all_one[d]) {\n+                                if (nvect > 2 || !is_all_one[d]) {\n                                         src_lo0 = svand_x(predicate_0, src_data0, mask0f);\n                                         src_hi0 = svlsr_x(predicate_0, src_data0, 4);\n                                         src_lo1 = svand_x(predicate_1, src_data1, mask0f);\n@@ -167,7 +167,7 @@\n                         for (int d = 0; d < nvect; d++) {\n                                 svuint8_t gf_result0, gf_result1, gf_result2, gf_result3;\n \n-                                if (is_all_one[d]) {\n+                                if (nvect <= 2 && is_all_one[d]) {\n                                         gf_result0 = src_data0;\n                                         gf_result1 = src_data1;\n                                         gf_result2 = src_data2;\n"
+    },
+    "check-baseline.log": {
+      "sha256": "f2a87d458393c3b0621259fa8457628dccb09e02ec0f8c39be43d3bf7535bc0a",
+      "text": "make: Entering directory '/home/runner/work/_temp/ec-sve-validation/baseline'\nmake --no-print-directory check-am\nmake --no-print-directory erasure_code/gf_vect_mul_test erasure_code/erasure_code_test erasure_code/gf_inverse_test erasure_code/erasure_code_update_test raid/xor_gen_test raid/pq_gen_test raid/xor_check_test raid/pq_check_test crc/crc16_t10dif_test crc/crc16_t10dif_copy_test crc/crc64_funcs_test crc/crc32_funcs_test igzip/igzip_rand_test igzip/igzip_wrapper_hdr_test igzip/checksum32_funcs_test mem/mem_zero_detect_test misc/version_test\n  CC       erasure_code/gf_vect_mul_test.o\n  CCLD     erasure_code/gf_vect_mul_test\n  CC       erasure_code/erasure_code_test.o\n  CCLD     erasure_code/erasure_code_test\n  CC       erasure_code/gf_inverse_test.o\n  CCLD     erasure_code/gf_inverse_test\n  CC       erasure_code/erasure_code_update_test.o\n  CCLD     erasure_code/erasure_code_update_test\n  CC       raid/xor_gen_test.o\n  CCLD     raid/xor_gen_test\n  CC       raid/pq_gen_test.o\n  CCLD     raid/pq_gen_test\n  CC       raid/xor_check_test.o\n  CCLD     raid/xor_check_test\n  CC       raid/pq_check_test.o\n  CCLD     raid/pq_check_test\n  CC       crc/crc16_t10dif_test.o\n  CCLD     crc/crc16_t10dif_test\n  CC       crc/crc16_t10dif_copy_test.o\n  CCLD     crc/crc16_t10dif_copy_test\n  CC       crc/crc64_funcs_test.o\n  CCLD     crc/crc64_funcs_test\n  CC       crc/crc32_funcs_test.o\n  CCLD     crc/crc32_funcs_test\n  CC       igzip/igzip_rand_test.o\n  CCLD     igzip/igzip_rand_test\n  CC       igzip/igzip_wrapper_hdr_test.o\n  CCLD     igzip/igzip_wrapper_hdr_test\n  CC       igzip/checksum32_funcs_test.o\n  CCLD     igzip/checksum32_funcs_test\n  CC       mem/mem_zero_detect_test.o\n  CCLD     mem/mem_zero_detect_test\n  CC       misc/version_test.o\n  CCLD     misc/version_test\nmake --no-print-directory check-TESTS\nPASS: erasure_code/gf_vect_mul_test\nPASS: erasure_code/erasure_code_test\nPASS: erasure_code/gf_inverse_test\nPASS: erasure_code/erasure_code_update_test\nPASS: raid/xor_gen_test\nPASS: raid/pq_gen_test\nPASS: raid/xor_check_test\nPASS: raid/pq_check_test\nPASS: crc/crc16_t10dif_test\nPASS: crc/crc16_t10dif_copy_test\nPASS: crc/crc64_funcs_test\nPASS: crc/crc32_funcs_test\nPASS: igzip/igzip_rand_test\nPASS: igzip/igzip_wrapper_hdr_test\nPASS: igzip/checksum32_funcs_test\nPASS: mem/mem_zero_detect_test\nPASS: misc/version_test\n============================================================================\nTestsuite summary for libisal 2.32.1\n============================================================================\n# TOTAL: 17\n# PASS:  17\n# SKIP:  0\n# XFAIL: 0\n# FAIL:  0\n# XPASS: 0\n# ERROR: 0\n============================================================================\nmake: Leaving directory '/home/runner/work/_temp/ec-sve-validation/baseline'\n"
+    },
+    "check-boundaries.log": {
+      "sha256": "b3a8ce9b67fe5128187d4b7b73151dba8644dc25010d5543deb37e68f55f5b9a",
+      "text": "SVE vector length: 16 bytes\nPASS: 5544 matrix/length cases, 21816 encoder calls, exact-sized guarded tables/data\n"
+    },
+    "check-candidate.log": {
+      "sha256": "77cafa71a343bf756b5e65d135dd5684a0eda6a6b94520570e249238e1f4c6cc",
+      "text": "make: Entering directory '/home/runner/work/_temp/ec-sve-validation/candidate'\nmake --no-print-directory check-am\nmake --no-print-directory erasure_code/gf_vect_mul_test erasure_code/erasure_code_test erasure_code/gf_inverse_test erasure_code/erasure_code_update_test raid/xor_gen_test raid/pq_gen_test raid/xor_check_test raid/pq_check_test crc/crc16_t10dif_test crc/crc16_t10dif_copy_test crc/crc64_funcs_test crc/crc32_funcs_test igzip/igzip_rand_test igzip/igzip_wrapper_hdr_test igzip/checksum32_funcs_test mem/mem_zero_detect_test misc/version_test\n  CC       erasure_code/gf_vect_mul_test.o\n  CCLD     erasure_code/gf_vect_mul_test\n  CC       erasure_code/erasure_code_test.o\n  CCLD     erasure_code/erasure_code_test\n  CC       erasure_code/gf_inverse_test.o\n  CCLD     erasure_code/gf_inverse_test\n  CC       erasure_code/erasure_code_update_test.o\n  CCLD     erasure_code/erasure_code_update_test\n  CC       raid/xor_gen_test.o\n  CCLD     raid/xor_gen_test\n  CC       raid/pq_gen_test.o\n  CCLD     raid/pq_gen_test\n  CC       raid/xor_check_test.o\n  CCLD     raid/xor_check_test\n  CC       raid/pq_check_test.o\n  CCLD     raid/pq_check_test\n  CC       crc/crc16_t10dif_test.o\n  CCLD     crc/crc16_t10dif_test\n  CC       crc/crc16_t10dif_copy_test.o\n  CCLD     crc/crc16_t10dif_copy_test\n  CC       crc/crc64_funcs_test.o\n  CCLD     crc/crc64_funcs_test\n  CC       crc/crc32_funcs_test.o\n  CCLD     crc/crc32_funcs_test\n  CC       igzip/igzip_rand_test.o\n  CCLD     igzip/igzip_rand_test\n  CC       igzip/igzip_wrapper_hdr_test.o\n  CCLD     igzip/igzip_wrapper_hdr_test\n  CC       igzip/checksum32_funcs_test.o\n  CCLD     igzip/checksum32_funcs_test\n  CC       mem/mem_zero_detect_test.o\n  CCLD     mem/mem_zero_detect_test\n  CC       misc/version_test.o\n  CCLD     misc/version_test\nmake --no-print-directory check-TESTS\nPASS: erasure_code/gf_vect_mul_test\nPASS: erasure_code/erasure_code_test\nPASS: erasure_code/gf_inverse_test\nPASS: erasure_code/erasure_code_update_test\nPASS: raid/xor_gen_test\nPASS: raid/pq_gen_test\nPASS: raid/xor_check_test\nPASS: raid/pq_check_test\nPASS: crc/crc16_t10dif_test\nPASS: crc/crc16_t10dif_copy_test\nPASS: crc/crc64_funcs_test\nPASS: crc/crc32_funcs_test\nPASS: igzip/igzip_rand_test\nPASS: igzip/igzip_wrapper_hdr_test\nPASS: igzip/checksum32_funcs_test\nPASS: mem/mem_zero_detect_test\nPASS: misc/version_test\n============================================================================\nTestsuite summary for libisal 2.32.1\n============================================================================\n# TOTAL: 17\n# PASS:  17\n# SKIP:  0\n# XFAIL: 0\n# FAIL:  0\n# XPASS: 0\n# ERROR: 0\n============================================================================\nmake: Leaving directory '/home/runner/work/_temp/ec-sve-validation/candidate'\n"
+    },
+    "driver-sha256.txt": {
+      "sha256": "4bfacc1af0f071a9b99fc91edb647c303bd550af1ef3e66a8da2d77c7d088cfa",
+      "text": "2b7bd05cf32037e3dfcd967de21ca560daeafc65bc9720617c57664f71d5a675  /home/runner/work/_temp/ec-sve-validation/baseline/erasure_code/erasure_code_perf.c\n2b7bd05cf32037e3dfcd967de21ca560daeafc65bc9720617c57664f71d5a675  /home/runner/work/_temp/ec-sve-validation/candidate/erasure_code/erasure_code_perf.c\n"
+    },
+    "environment.txt": {
+      "sha256": "1ab115cfa07d38756f0677e1a86a164cf258d00b15d969a26f1714befc050bfd",
+      "text": "Tue Oct 20 13:58:07 UTC 2026\nLinux runnervm05w4h 7.0.0-1017-azure #17~24.04.1-Ubuntu SMP PREEMPT Thu Sep 24 19:06:39 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux\nArchitecture:                            aarch64\nCPU op-mode(s):                          32-bit, 64-bit\nByte Order:                              Little Endian\nCPU(s):                                  4\nOn-line CPU(s) list:                     0-3\nVendor ID:                               ARM\nModel name:                              Neoverse-N2\nModel:                                   0\nThread(s) per core:                      1\nCore(s) per socket:                      4\nSocket(s):                               1\nStepping:                                r0p0\nBogoMIPS:                                2000.00\nFlags:                                   fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 sm3 sm4 asimddp sha512 sve asimdfhm uscat ilrcpc flagm sb paca pacg dcpodp sve2 sveaes svebitperm svesha3 svesm4 flagm2 frint svei8mm svebf16 i8mm bf16\nL1d cache:                               256 KiB (4 instances)\nL1i cache:                               256 KiB (4 instances)\nL2 cache:                                4 MiB (4 instances)\nL3 cache:                                128 MiB (1 instance)\nNUMA node(s):                            1\nNUMA node0 CPU(s):                       0-3\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Old microcode:             Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Not affected\nVulnerability Spec rstack overflow:      Not affected\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; CSV2, BHB\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Not affected\ngcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\nGNU assembler (GNU Binutils for Ubuntu) 2.42\nCopyright (C) 2024 Free Software Foundation, Inc.\nThis program is free software; you may redistribute it under the terms of\nthe GNU General Public License version 3 or later.\nThis program has absolutely no warranty.\nThis assembler was configured for a target of `aarch64-linux-gnu'.\n16\nupstream=8fa1e72fee7338fcfbf829b00f2f407631bd2dba\nexperiment=0251b745cac9b7eb9223371e4c23d0b1899934f3\ncpu=0\nvariant=table4\n"
+    },
+    "guards/baseline/r1-k10-p4-s1048576.log": {
+      "sha256": "d4bc51986c331889496de8a33bf4d45b10d9f808c6d54cda683609b3ba5a35d1",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x1048576 1\nerasure_code_encode_warm: runtime =    3063750 usecs, bandwidth 25778 MB in 3.0638 sec = 8413.93 MB/s\nerasure_code_decode_warm: runtime =    3008598 usecs, bandwidth 158135 MB in 3.0086 sec = 52561.26 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r1-k10-p4-s4096.log": {
+      "sha256": "6d2ad76c8097184d8a58a291b8f442e8aaf3e4dede90ff0beb05e045e2c129ab",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x4096 1\nerasure_code_encode_warm: runtime =    3062509 usecs, bandwidth 25990 MB in 3.0625 sec = 8486.83 MB/s\nerasure_code_decode_warm: runtime =    3001276 usecs, bandwidth 239250 MB in 3.0013 sec = 79716.38 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r1-k10-p6-s1048576.log": {
+      "sha256": "4147c912b99d5f5aa957d5f746eb86084d29383ff75e69ff7c94621909880dcb",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x1048576 1\nerasure_code_encode_warm: runtime =    3064113 usecs, bandwidth 19226 MB in 3.0641 sec = 6274.80 MB/s\nerasure_code_decode_warm: runtime =    3062587 usecs, bandwidth 69090 MB in 3.0626 sec = 22559.57 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r1-k10-p6-s4096.log": {
+      "sha256": "b2adb978de08a01bf48bf0c1751aa934ec068ba2b018c9d1ca8ecc3c9d249676",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x4096 1\nerasure_code_encode_warm: runtime =    3062504 usecs, bandwidth 19408 MB in 3.0625 sec = 6337.39 MB/s\nerasure_code_decode_warm: runtime =    3062500 usecs, bandwidth 69871 MB in 3.0625 sec = 22815.15 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r1-k10-p7-s1048576.log": {
+      "sha256": "adc776626a941635f6724dd3510fa09e8f8de9f1ac43ded073a53ba1732bbb66",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x1048576 1\nerasure_code_encode_warm: runtime =    3063887 usecs, bandwidth 17397 MB in 3.0639 sec = 5678.40 MB/s\nerasure_code_decode_warm: runtime =    3001007 usecs, bandwidth 157893 MB in 3.0010 sec = 52613.51 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r1-k10-p7-s4096.log": {
+      "sha256": "7c8ecca72aba571c90a3fcabed5e3c903fe3433c9a3086abbf567664c0838c7f",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x4096 1\nerasure_code_encode_warm: runtime =    3062502 usecs, bandwidth 17533 MB in 3.0625 sec = 5725.14 MB/s\nerasure_code_decode_warm: runtime =    3062522 usecs, bandwidth 242295 MB in 3.0625 sec = 79116.47 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r1-k16-p4-s65536.log": {
+      "sha256": "f2833e6ed0984aa0c1b4231935d02e2ff1dc8b99676ff4e28417923d1eb197c8",
+      "text": "Testing with 16 data buffers and 4 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 20x65536 1\nerasure_code_encode_warm: runtime =    3062908 usecs, bandwidth 23050 MB in 3.0629 sec = 7525.63 MB/s\nerasure_code_decode_warm: runtime =    3000403 usecs, bandwidth 120760 MB in 3.0004 sec = 40248.19 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r1-k4-p4-s65536.log": {
+      "sha256": "554b0c9bc5e3126d106253b910d7a44aad217e631ecca2d06d80540ceca39738",
+      "text": "Testing with 4 data buffers and 4 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 8x65536 1\nerasure_code_encode_warm: runtime =    3062486 usecs, bandwidth 34303 MB in 3.0625 sec = 11201.07 MB/s\nerasure_code_decode_warm: runtime =    3002360 usecs, bandwidth 73289 MB in 3.0024 sec = 24410.76 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k10-p4-s1048576.log": {
+      "sha256": "3363b438f7410d75fe0baffa2df59f0bbe62ddc2ce5dc1baa29fae995b995729",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x1048576 1\nerasure_code_encode_warm: runtime =    3062773 usecs, bandwidth 25675 MB in 3.0628 sec = 8383.07 MB/s\nerasure_code_decode_warm: runtime =    3018765 usecs, bandwidth 158447 MB in 3.0188 sec = 52487.41 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k10-p4-s4096.log": {
+      "sha256": "2cf9f6a46a4f09fb86c3b142fd970012f741f1c986ca632edc5a0ce0e0475355",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x4096 1\nerasure_code_encode_warm: runtime =    3062502 usecs, bandwidth 25978 MB in 3.0625 sec = 8482.82 MB/s\nerasure_code_decode_warm: runtime =    3001905 usecs, bandwidth 239723 MB in 3.0019 sec = 79857.13 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k10-p6-s1048576.log": {
+      "sha256": "733d0df998c71420a3a2aa868f02278c7dec4ada391be4cb3cef8dac2cd2f8e6",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x1048576 1\nerasure_code_encode_warm: runtime =    3064008 usecs, bandwidth 19260 MB in 3.0640 sec = 6285.96 MB/s\nerasure_code_decode_warm: runtime =    3005660 usecs, bandwidth 67729 MB in 3.0057 sec = 22534.02 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k10-p6-s4096.log": {
+      "sha256": "a54bfe7e125880f618c54ce589980c39864092d080c68fbba0647168df0ea979",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x4096 1\nerasure_code_encode_warm: runtime =    3062488 usecs, bandwidth 19425 MB in 3.0625 sec = 6343.05 MB/s\nerasure_code_decode_warm: runtime =    3062490 usecs, bandwidth 69867 MB in 3.0625 sec = 22813.88 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k10-p7-s1048576.log": {
+      "sha256": "f4de7cdff8b9efbc60d818a98f65ec8b640447e7274539696a9233eb9321a765",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x1048576 1\nerasure_code_encode_warm: runtime =    3063701 usecs, bandwidth 17397 MB in 3.0637 sec = 5678.74 MB/s\nerasure_code_decode_warm: runtime =    3002614 usecs, bandwidth 158620 MB in 3.0026 sec = 52827.36 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k10-p7-s4096.log": {
+      "sha256": "d35b21e9e290e3d30e68dc23e4cbabfb75ccdf2e53a5136c30f45943d53027a3",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x4096 1\nerasure_code_encode_warm: runtime =    3062500 usecs, bandwidth 17531 MB in 3.0625 sec = 5724.60 MB/s\nerasure_code_decode_warm: runtime =    3001194 usecs, bandwidth 237873 MB in 3.0012 sec = 79259.58 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k16-p4-s65536.log": {
+      "sha256": "1982adc65c08947e380e1b46e9e5459b7ac73378574f2e0bad5446ec313a6230",
+      "text": "Testing with 16 data buffers and 4 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 20x65536 1\nerasure_code_encode_warm: runtime =    3004695 usecs, bandwidth 22520 MB in 3.0047 sec = 7495.20 MB/s\nerasure_code_decode_warm: runtime =    3062652 usecs, bandwidth 121170 MB in 3.0627 sec = 39564.01 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r2-k4-p4-s65536.log": {
+      "sha256": "685a2b9f9069874ba8faf1c03636e00ef9a70d84db160ed7b36fa33dd1ad5d29",
+      "text": "Testing with 4 data buffers and 4 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 8x65536 1\nerasure_code_encode_warm: runtime =    3000131 usecs, bandwidth 33925 MB in 3.0001 sec = 11307.87 MB/s\nerasure_code_decode_warm: runtime =    3062492 usecs, bandwidth 74946 MB in 3.0625 sec = 24472.43 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k10-p4-s1048576.log": {
+      "sha256": "3d6a82ab8c0047aa1266890e683b4c4aecdcdd9ecb557d6558a4b0b5d63dc179",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x1048576 1\nerasure_code_encode_warm: runtime =    3063297 usecs, bandwidth 25660 MB in 3.0633 sec = 8376.84 MB/s\nerasure_code_decode_warm: runtime =    3009380 usecs, bandwidth 157478 MB in 3.0094 sec = 52329.13 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k10-p4-s4096.log": {
+      "sha256": "014c0e2d8a289b09a321fd34b8742d1604978fef7b6ba867df21a6e593a39791",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x4096 1\nerasure_code_encode_warm: runtime =    3062527 usecs, bandwidth 25977 MB in 3.0625 sec = 8482.47 MB/s\nerasure_code_decode_warm: runtime =    3001161 usecs, bandwidth 238035 MB in 3.0012 sec = 79314.54 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k10-p6-s1048576.log": {
+      "sha256": "f60f5fa10159a9c13f6160aca4848e9276bbf8df04d605204a8aeb9fe1d729cc",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x1048576 1\nerasure_code_encode_warm: runtime =    3000964 usecs, bandwidth 18840 MB in 3.0010 sec = 6278.25 MB/s\nerasure_code_decode_warm: runtime =    3062761 usecs, bandwidth 69056 MB in 3.0628 sec = 22547.00 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k10-p6-s4096.log": {
+      "sha256": "a4738b56eb5efe537b30aacc139b6c0577c16b11457e81e3befd2edd0ed46336",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x4096 1\nerasure_code_encode_warm: runtime =    3062512 usecs, bandwidth 19423 MB in 3.0625 sec = 6342.49 MB/s\nerasure_code_decode_warm: runtime =    3062510 usecs, bandwidth 69857 MB in 3.0625 sec = 22810.43 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k10-p7-s1048576.log": {
+      "sha256": "d92e4e83631d6425c539dd89c9e8f3967d29d005d967b71d5902988f2343ad0b",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x1048576 1\nerasure_code_encode_warm: runtime =    3065071 usecs, bandwidth 17380 MB in 3.0651 sec = 5670.39 MB/s\nerasure_code_decode_warm: runtime =    3012391 usecs, bandwidth 158897 MB in 3.0124 sec = 52747.80 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k10-p7-s4096.log": {
+      "sha256": "355471586fc37cd768782a67ac6d35e41f10e90ae84d94a628c4901a032d4f72",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x4096 1\nerasure_code_encode_warm: runtime =    3062502 usecs, bandwidth 17533 MB in 3.0625 sec = 5725.08 MB/s\nerasure_code_decode_warm: runtime =    3062536 usecs, bandwidth 243418 MB in 3.0625 sec = 79482.69 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k16-p4-s65536.log": {
+      "sha256": "bf2ea0dade52fcbc8ba7f4f02c5524f47f5b21d579a4fd3ae7f28a0d4548a350",
+      "text": "Testing with 16 data buffers and 4 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 20x65536 1\nerasure_code_encode_warm: runtime =    3062881 usecs, bandwidth 23256 MB in 3.0629 sec = 7592.88 MB/s\nerasure_code_decode_warm: runtime =    3000852 usecs, bandwidth 119481 MB in 3.0009 sec = 39815.96 MB/s\ndone all: Pass\n"
+    },
+    "guards/baseline/r3-k4-p4-s65536.log": {
+      "sha256": "04f35aca21020bb0cc442f49fbc09ad68d51369c10ad0ed70da4964e717e2750",
+      "text": "Testing with 4 data buffers and 4 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 8x65536 1\nerasure_code_encode_warm: runtime =    3062323 usecs, bandwidth 34262 MB in 3.0623 sec = 11188.48 MB/s\nerasure_code_decode_warm: runtime =    3062493 usecs, bandwidth 74917 MB in 3.0625 sec = 24462.80 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k10-p4-s1048576.log": {
+      "sha256": "e0fd1179fb7f49b16314f55a3806085f8d53cac92e9d9b2ddb98e5b67f2da49d",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x1048576 1\nerasure_code_encode_warm: runtime =    3000963 usecs, bandwidth 30211 MB in 3.0010 sec = 10067.29 MB/s\nerasure_code_decode_warm: runtime =    3062379 usecs, bandwidth 160557 MB in 3.0624 sec = 52429.16 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k10-p4-s4096.log": {
+      "sha256": "4ebc561552bf395c012bf4b479abbc1940c8fdde0e34e78796730d6468cce509",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x4096 1\nerasure_code_encode_warm: runtime =    3062484 usecs, bandwidth 31211 MB in 3.0625 sec = 10191.72 MB/s\nerasure_code_decode_warm: runtime =    3062518 usecs, bandwidth 238529 MB in 3.0625 sec = 77886.83 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k10-p6-s1048576.log": {
+      "sha256": "47c5e4654a8e6c5b414c26ac861a837ca5b3199cee46ad9e7f3db8a85ddd3f54",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x1048576 1\nerasure_code_encode_warm: runtime =    3001055 usecs, bandwidth 20870 MB in 3.0011 sec = 6954.51 MB/s\nerasure_code_decode_warm: runtime =    3062676 usecs, bandwidth 69090 MB in 3.0627 sec = 22558.92 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k10-p6-s4096.log": {
+      "sha256": "6051f0e2ff1817dd89caf82d2b786fd0abf322291eb8fae3f5491f36079608ec",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x4096 1\nerasure_code_encode_warm: runtime =    3062502 usecs, bandwidth 21510 MB in 3.0625 sec = 7023.91 MB/s\nerasure_code_decode_warm: runtime =    3000196 usecs, bandwidth 68420 MB in 3.0002 sec = 22805.50 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k10-p7-s1048576.log": {
+      "sha256": "602e94478b190557a699e4d1482146e6e69d7e5480ce98f60775a8ec5ecc7a43",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x1048576 1\nerasure_code_encode_warm: runtime =    3000430 usecs, bandwidth 20517 MB in 3.0004 sec = 6838.18 MB/s\nerasure_code_decode_warm: runtime =    3014183 usecs, bandwidth 158089 MB in 3.0142 sec = 52448.57 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k10-p7-s4096.log": {
+      "sha256": "9d4c55d97cea1c6f8ff22f2277c5945b6e168aa62db9983efbefedc28fef7e77",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x4096 1\nerasure_code_encode_warm: runtime =    3062491 usecs, bandwidth 21209 MB in 3.0625 sec = 6925.47 MB/s\nerasure_code_decode_warm: runtime =    3062499 usecs, bandwidth 238564 MB in 3.0625 sec = 77898.78 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k16-p4-s65536.log": {
+      "sha256": "d5376f5b1d94c8209b337894d0e2a834937d51f30bc4eb05c5ab7df0d8c6dd73",
+      "text": "Testing with 16 data buffers and 4 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 20x65536 1\nerasure_code_encode_warm: runtime =    3003824 usecs, bandwidth 26875 MB in 3.0038 sec = 8946.93 MB/s\nerasure_code_decode_warm: runtime =    3062437 usecs, bandwidth 122681 MB in 3.0624 sec = 40060.11 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r1-k4-p4-s65536.log": {
+      "sha256": "050c4badf4d87f9b229418fbcace55e38b39099b0d738cd2bd9dece16bdaa566",
+      "text": "Testing with 4 data buffers and 4 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 8x65536 1\nerasure_code_encode_warm: runtime =    3062522 usecs, bandwidth 40680 MB in 3.0625 sec = 13283.35 MB/s\nerasure_code_decode_warm: runtime =    3062573 usecs, bandwidth 74938 MB in 3.0626 sec = 24469.22 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k10-p4-s1048576.log": {
+      "sha256": "563b68092853fb8ba18083b48b00b238041772f06475187474d4ffcb70cd5c18",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x1048576 1\nerasure_code_encode_warm: runtime =    3063818 usecs, bandwidth 30916 MB in 3.0638 sec = 10090.75 MB/s\nerasure_code_decode_warm: runtime =    3017861 usecs, bandwidth 158308 MB in 3.0179 sec = 52457.27 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k10-p4-s4096.log": {
+      "sha256": "edc6807c6766e0fe5ae173d80ef789361481fcb5839aa033f320dffa46dd31a5",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x4096 1\nerasure_code_encode_warm: runtime =    3062504 usecs, bandwidth 31244 MB in 3.0625 sec = 10202.35 MB/s\nerasure_code_decode_warm: runtime =    3062501 usecs, bandwidth 238630 MB in 3.0625 sec = 77920.21 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k10-p6-s1048576.log": {
+      "sha256": "d9e884ecdebdf30deeee657e2611fab641709a11a086223db05d01b16871b3e1",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x1048576 1\nerasure_code_encode_warm: runtime =    3063981 usecs, bandwidth 21340 MB in 3.0640 sec = 6965.00 MB/s\nerasure_code_decode_warm: runtime =    3062826 usecs, bandwidth 69113 MB in 3.0628 sec = 22565.35 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k10-p6-s4096.log": {
+      "sha256": "86c4ca7893d89b03a6497e8cd42398cacea11be5f78c8112eb05e4491b5226b8",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x4096 1\nerasure_code_encode_warm: runtime =    3062493 usecs, bandwidth 21529 MB in 3.0625 sec = 7030.18 MB/s\nerasure_code_decode_warm: runtime =    3000216 usecs, bandwidth 68492 MB in 3.0002 sec = 22829.19 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k10-p7-s1048576.log": {
+      "sha256": "770e134b1a22c726fdf685525e8318afb07261bbfc4cdc996183227e2522d75b",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x1048576 1\nerasure_code_encode_warm: runtime =    3064108 usecs, bandwidth 20945 MB in 3.0641 sec = 6835.69 MB/s\nerasure_code_decode_warm: runtime =    3062911 usecs, bandwidth 161895 MB in 3.0629 sec = 52856.88 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k10-p7-s4096.log": {
+      "sha256": "526435d227d28b5a2e6eb1d29d8fcaee864da3294d83a3011aa9c621dace8a20",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x4096 1\nerasure_code_encode_warm: runtime =    3062495 usecs, bandwidth 21191 MB in 3.0625 sec = 6919.69 MB/s\nerasure_code_decode_warm: runtime =    3062509 usecs, bandwidth 238830 MB in 3.0625 sec = 77985.11 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k16-p4-s65536.log": {
+      "sha256": "c4a7b26ffd970f98c246d62f70fe67ab8e9171e4ada21b6f3b6b76c27099647c",
+      "text": "Testing with 16 data buffers and 4 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 20x65536 1\nerasure_code_encode_warm: runtime =    3062700 usecs, bandwidth 27556 MB in 3.0627 sec = 8997.48 MB/s\nerasure_code_decode_warm: runtime =    3008357 usecs, bandwidth 119553 MB in 3.0084 sec = 39740.34 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r2-k4-p4-s65536.log": {
+      "sha256": "37478b45f05ea9dc4190c9a6913a49a0ca100542d3ce9eca5b621a327be1c8bc",
+      "text": "Testing with 4 data buffers and 4 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 8x65536 1\nerasure_code_encode_warm: runtime =    3000492 usecs, bandwidth 39961 MB in 3.0005 sec = 13318.40 MB/s\nerasure_code_decode_warm: runtime =    3062569 usecs, bandwidth 72913 MB in 3.0626 sec = 23807.80 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k10-p4-s1048576.log": {
+      "sha256": "af566ad7683f22e1be471f29813e568303eb02fec1d5afe4179f25d97222d590",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x1048576 1\nerasure_code_encode_warm: runtime =    3001119 usecs, bandwidth 30167 MB in 3.0011 sec = 10052.09 MB/s\nerasure_code_decode_warm: runtime =    3007080 usecs, bandwidth 158412 MB in 3.0071 sec = 52679.85 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k10-p4-s4096.log": {
+      "sha256": "2eb9eb3e22233b68765aadfc5ad2ee3f41fb126b2fffde0d3b2809e53dc9e1c0",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x4096 1\nerasure_code_encode_warm: runtime =    3062506 usecs, bandwidth 31214 MB in 3.0625 sec = 10192.59 MB/s\nerasure_code_decode_warm: runtime =    3062549 usecs, bandwidth 238520 MB in 3.0625 sec = 77882.94 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k10-p6-s1048576.log": {
+      "sha256": "ffcd12795a25b682a8974a8096e80ad233eba5c43565c9b64caf748b44ccf070",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x1048576 1\nerasure_code_encode_warm: runtime =    3002097 usecs, bandwidth 20870 MB in 3.0021 sec = 6952.09 MB/s\nerasure_code_decode_warm: runtime =    3062542 usecs, bandwidth 69079 MB in 3.0625 sec = 22556.14 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k10-p6-s4096.log": {
+      "sha256": "59c7a551fa475a58f1ec550e3aab7e89e5f0872f2f5af4ac5b5e8ed105c8a5ac",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x4096 1\nerasure_code_encode_warm: runtime =    3062528 usecs, bandwidth 21542 MB in 3.0625 sec = 7034.17 MB/s\nerasure_code_decode_warm: runtime =    3000043 usecs, bandwidth 68453 MB in 3.0000 sec = 22817.41 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k10-p7-s1048576.log": {
+      "sha256": "6e5c4b7c10b00b5491be63b3173f82155304d7032b6e7c2ad13706f58eee7faf",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x1048576 1\nerasure_code_encode_warm: runtime =    3008417 usecs, bandwidth 20570 MB in 3.0084 sec = 6837.80 MB/s\nerasure_code_decode_warm: runtime =    3001249 usecs, bandwidth 158320 MB in 3.0012 sec = 52751.46 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k10-p7-s4096.log": {
+      "sha256": "d032803a700c382da95575e437ec6248066d29bedcb701807ae50ddedc3d38b7",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x4096 1\nerasure_code_encode_warm: runtime =    3062506 usecs, bandwidth 21169 MB in 3.0625 sec = 6912.50 MB/s\nerasure_code_decode_warm: runtime =    3062592 usecs, bandwidth 238674 MB in 3.0626 sec = 77932.12 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k16-p4-s65536.log": {
+      "sha256": "5a6428ad50ed6cb28fd28eb7c006d11a50a299ad11e702346af68de6902949fd",
+      "text": "Testing with 16 data buffers and 4 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 20x65536 1\nerasure_code_encode_warm: runtime =    3000745 usecs, bandwidth 26923 MB in 3.0007 sec = 8972.27 MB/s\nerasure_code_decode_warm: runtime =    3003448 usecs, bandwidth 121579 MB in 3.0034 sec = 40480.03 MB/s\ndone all: Pass\n"
+    },
+    "guards/candidate/r3-k4-p4-s65536.log": {
+      "sha256": "8580454b3dfad06e183f9d54ac7e43f38d009c334d1b44789815276b64836237",
+      "text": "Testing with 4 data buffers and 4 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 8x65536 1\nerasure_code_encode_warm: runtime =    3000293 usecs, bandwidth 39930 MB in 3.0003 sec = 13308.80 MB/s\nerasure_code_decode_warm: runtime =    3062497 usecs, bandwidth 74753 MB in 3.0625 sec = 24409.37 MB/s\ndone all: Pass\n"
+    },
+    "guards/summary.csv": {
+      "sha256": "a7e0aedb0d58a0190cbdb852538e552a7e488c55b11596fd18f677574261bf31",
+      "text": "version,case,direction,median_MB_s,gain_pct,paired_gain_pct,min_paired_gain_pct,cv_pct,repeats\r\nbaseline,k10-p4-s1048576,decode,52487.41,0.0,0.0,0.0,0.23,3\r\nbaseline,k10-p4-s1048576,encode,8383.07,0.0,0.0,0.0,0.24,3\r\nbaseline,k10-p4-s4096,decode,79716.38,0.0,0.0,0.0,0.35,3\r\nbaseline,k10-p4-s4096,encode,8482.82,0.0,0.0,0.0,0.03,3\r\nbaseline,k10-p6-s1048576,decode,22547.0,0.0,0.0,0.0,0.06,3\r\nbaseline,k10-p6-s1048576,encode,6278.25,0.0,0.0,0.0,0.09,3\r\nbaseline,k10-p6-s4096,decode,22813.88,0.0,0.0,0.0,0.01,3\r\nbaseline,k10-p6-s4096,encode,6342.49,0.0,0.0,0.0,0.05,3\r\nbaseline,k10-p7-s1048576,decode,52747.8,0.0,0.0,0.0,0.2,3\r\nbaseline,k10-p7-s1048576,encode,5678.4,0.0,0.0,0.0,0.08,3\r\nbaseline,k10-p7-s4096,decode,79259.58,0.0,0.0,0.0,0.23,3\r\nbaseline,k10-p7-s4096,encode,5725.08,0.0,0.0,0.0,0.01,3\r\nbaseline,k16-p4-s65536,decode,39815.96,0.0,0.0,0.0,0.87,3\r\nbaseline,k16-p4-s65536,encode,7525.63,0.0,0.0,0.0,0.66,3\r\nbaseline,k4-p4-s65536,decode,24462.8,0.0,0.0,0.0,0.14,3\r\nbaseline,k4-p4-s65536,encode,11201.07,0.0,0.0,0.0,0.58,3\r\ncandidate,k10-p4-s1048576,decode,52457.27,-0.06,-0.06,-0.25,0.26,3\r\ncandidate,k10-p4-s1048576,encode,10067.29,20.09,20.0,19.65,0.19,3\r\ncandidate,k10-p4-s4096,decode,77886.83,-2.3,-2.3,-2.43,0.03,3\r\ncandidate,k10-p4-s4096,encode,10192.59,20.16,20.16,20.09,0.06,3\r\ncandidate,k10-p6-s1048576,decode,22558.92,0.05,0.04,-0.0,0.02,3\r\ncandidate,k10-p6-s1048576,encode,6954.51,10.77,10.8,10.73,0.1,3\r\ncandidate,k10-p6-s4096,decode,22817.41,0.02,0.03,-0.04,0.05,3\r\ncandidate,k10-p6-s4096,encode,7030.18,10.84,10.83,10.83,0.07,3\r\ncandidate,k10-p7-s1048576,decode,52751.46,0.01,0.01,-0.31,0.4,3\r\ncandidate,k10-p7-s1048576,encode,6837.8,20.42,20.42,20.37,0.02,3\r\ncandidate,k10-p7-s4096,decode,77932.12,-1.67,-1.61,-1.95,0.06,3\r\ncandidate,k10-p7-s4096,encode,6919.69,20.87,20.88,20.74,0.09,3\r\ncandidate,k16-p4-s65536,decode,40060.11,0.61,0.45,-0.47,0.93,3\r\ncandidate,k16-p4-s65536,encode,8972.27,19.22,18.89,18.17,0.28,3\r\ncandidate,k4-p4-s65536,decode,24409.37,-0.22,-0.22,-2.72,1.51,3\r\ncandidate,k4-p4-s65536,encode,13308.8,18.82,18.59,17.78,0.14,3\r\n"
+    },
+    "guards/summary.json": {
+      "sha256": "f90e397a0d8a765bf1da86ee36a048b16df32a242b74e976b911008349a57a7f",
+      "text": "[\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p4-s1048576\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 52487.41,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.23,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p4-s1048576\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 8383.07,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.24,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p4-s4096\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 79716.38,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.35,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p4-s4096\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 8482.82,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.03,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p6-s1048576\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 22547.0,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.06,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p6-s1048576\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6278.25,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.09,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p6-s4096\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 22813.88,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.01,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p6-s4096\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6342.49,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.05,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p7-s1048576\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 52747.8,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.2,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p7-s1048576\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 5678.4,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.08,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p7-s4096\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 79259.58,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.23,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p7-s4096\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 5725.08,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.01,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k16-p4-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 39815.96,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.87,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k16-p4-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 7525.63,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.66,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k4-p4-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 24462.8,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.14,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k4-p4-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 11201.07,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.58,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p4-s1048576\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 52457.27,\n    \"gain_pct\": -0.06,\n    \"paired_gain_pct\": -0.06,\n    \"min_paired_gain_pct\": -0.25,\n    \"cv_pct\": 0.26,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p4-s1048576\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 10067.29,\n    \"gain_pct\": 20.09,\n    \"paired_gain_pct\": 20.0,\n    \"min_paired_gain_pct\": 19.65,\n    \"cv_pct\": 0.19,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p4-s4096\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 77886.83,\n    \"gain_pct\": -2.3,\n    \"paired_gain_pct\": -2.3,\n    \"min_paired_gain_pct\": -2.43,\n    \"cv_pct\": 0.03,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p4-s4096\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 10192.59,\n    \"gain_pct\": 20.16,\n    \"paired_gain_pct\": 20.16,\n    \"min_paired_gain_pct\": 20.09,\n    \"cv_pct\": 0.06,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p6-s1048576\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 22558.92,\n    \"gain_pct\": 0.05,\n    \"paired_gain_pct\": 0.04,\n    \"min_paired_gain_pct\": -0.0,\n    \"cv_pct\": 0.02,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p6-s1048576\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6954.51,\n    \"gain_pct\": 10.77,\n    \"paired_gain_pct\": 10.8,\n    \"min_paired_gain_pct\": 10.73,\n    \"cv_pct\": 0.1,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p6-s4096\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 22817.41,\n    \"gain_pct\": 0.02,\n    \"paired_gain_pct\": 0.03,\n    \"min_paired_gain_pct\": -0.04,\n    \"cv_pct\": 0.05,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p6-s4096\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 7030.18,\n    \"gain_pct\": 10.84,\n    \"paired_gain_pct\": 10.83,\n    \"min_paired_gain_pct\": 10.83,\n    \"cv_pct\": 0.07,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p7-s1048576\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 52751.46,\n    \"gain_pct\": 0.01,\n    \"paired_gain_pct\": 0.01,\n    \"min_paired_gain_pct\": -0.31,\n    \"cv_pct\": 0.4,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p7-s1048576\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6837.8,\n    \"gain_pct\": 20.42,\n    \"paired_gain_pct\": 20.42,\n    \"min_paired_gain_pct\": 20.37,\n    \"cv_pct\": 0.02,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p7-s4096\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 77932.12,\n    \"gain_pct\": -1.67,\n    \"paired_gain_pct\": -1.61,\n    \"min_paired_gain_pct\": -1.95,\n    \"cv_pct\": 0.06,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p7-s4096\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6919.69,\n    \"gain_pct\": 20.87,\n    \"paired_gain_pct\": 20.88,\n    \"min_paired_gain_pct\": 20.74,\n    \"cv_pct\": 0.09,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k16-p4-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 40060.11,\n    \"gain_pct\": 0.61,\n    \"paired_gain_pct\": 0.45,\n    \"min_paired_gain_pct\": -0.47,\n    \"cv_pct\": 0.93,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k16-p4-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 8972.27,\n    \"gain_pct\": 19.22,\n    \"paired_gain_pct\": 18.89,\n    \"min_paired_gain_pct\": 18.17,\n    \"cv_pct\": 0.28,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k4-p4-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 24409.37,\n    \"gain_pct\": -0.22,\n    \"paired_gain_pct\": -0.22,\n    \"min_paired_gain_pct\": -2.72,\n    \"cv_pct\": 1.51,\n    \"repeats\": 3\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k4-p4-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 13308.8,\n    \"gain_pct\": 18.82,\n    \"paired_gain_pct\": 18.59,\n    \"min_paired_gain_pct\": 17.78,\n    \"cv_pct\": 0.14,\n    \"repeats\": 3\n  }\n]\n"
+    },
+    "main/baseline/r1-k10-p2-s65536.log": {
+      "sha256": "d91343c7ee217210882e77d93dec6f0d06238a23f37d593600866b0a95d9a493",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062458 usecs, bandwidth 58346 MB in 3.0625 sec = 19052.07 MB/s\nerasure_code_decode_warm: runtime =    3062312 usecs, bandwidth 141289 MB in 3.0623 sec = 46138.04 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r1-k10-p4-s65536.log": {
+      "sha256": "a66079c4632e0162f92fcc117715814f5641dffee1ba93476bb1e2d6b7dde32b",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062556 usecs, bandwidth 25792 MB in 3.0626 sec = 8422.01 MB/s\nerasure_code_decode_warm: runtime =    3005962 usecs, bandwidth 145827 MB in 3.0060 sec = 48512.64 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r1-k10-p6-s65536.log": {
+      "sha256": "9ce9dbd9b8c1759141c743dc0759204d44bbd898a3095115c781e8782b76f347",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3000710 usecs, bandwidth 18482 MB in 3.0007 sec = 6159.27 MB/s\nerasure_code_decode_warm: runtime =    3000053 usecs, bandwidth 63273 MB in 3.0001 sec = 21090.64 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r1-k10-p7-s65536.log": {
+      "sha256": "ee2197fafec87ec14f1473a7c34f6a737ead1509a6f7308fa6da3aa17a0b7cd2",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3066614 usecs, bandwidth 17289 MB in 3.0666 sec = 5638.11 MB/s\nerasure_code_decode_warm: runtime =    3000986 usecs, bandwidth 133652 MB in 3.0010 sec = 44536.25 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r2-k10-p2-s65536.log": {
+      "sha256": "d99787e95595e49def9b32bc996103474942bc27dc2cf0a6c97880bff58f1ba0",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062546 usecs, bandwidth 58473 MB in 3.0625 sec = 19093.12 MB/s\nerasure_code_decode_warm: runtime =    3062905 usecs, bandwidth 143319 MB in 3.0629 sec = 46791.91 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r2-k10-p4-s65536.log": {
+      "sha256": "1867c9f8991c22421afe3a00797c1975f9dd2d4b601d8a47c540353d8811e9bc",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062269 usecs, bandwidth 25584 MB in 3.0623 sec = 8354.78 MB/s\nerasure_code_decode_warm: runtime =    3062350 usecs, bandwidth 153999 MB in 3.0624 sec = 50288.15 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r2-k10-p6-s65536.log": {
+      "sha256": "7ef0e7a68d72445e05632bf42bad76b20205ee42c7d03fe94bc325d1e16795b9",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062789 usecs, bandwidth 18798 MB in 3.0628 sec = 6137.83 MB/s\nerasure_code_decode_warm: runtime =    3062454 usecs, bandwidth 64220 MB in 3.0625 sec = 20970.20 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r2-k10-p7-s65536.log": {
+      "sha256": "f3c5c74474c5fc81a762d83259137a18057b27a78f06031a104e5e87e6fa3277",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3000288 usecs, bandwidth 16979 MB in 3.0003 sec = 5659.14 MB/s\nerasure_code_decode_warm: runtime =    3062489 usecs, bandwidth 135252 MB in 3.0625 sec = 44164.18 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r3-k10-p2-s65536.log": {
+      "sha256": "ee949789bea37e04029a55eaab4952848582b28e6591ef6af997be773a4482e4",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062558 usecs, bandwidth 58483 MB in 3.0626 sec = 19096.13 MB/s\nerasure_code_decode_warm: runtime =    3062499 usecs, bandwidth 144557 MB in 3.0625 sec = 47202.51 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r3-k10-p4-s65536.log": {
+      "sha256": "7fa767d93a69d681e23b91706168885f23cacf13981f70715d2e665f19a29d2b",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062560 usecs, bandwidth 25769 MB in 3.0626 sec = 8414.51 MB/s\nerasure_code_decode_warm: runtime =    3001466 usecs, bandwidth 146922 MB in 3.0015 sec = 48950.38 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r3-k10-p6-s65536.log": {
+      "sha256": "16c7f80c9264e711b6d652a468b0603c844ac331685638ec480354024aae084e",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062520 usecs, bandwidth 18894 MB in 3.0625 sec = 6169.52 MB/s\nerasure_code_decode_warm: runtime =    3062546 usecs, bandwidth 64534 MB in 3.0625 sec = 21072.21 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r3-k10-p7-s65536.log": {
+      "sha256": "fbdccca610905376609d5d58be6d277ba6df04f26b80a05c556acecd12aad4f0",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062643 usecs, bandwidth 17299 MB in 3.0626 sec = 5648.69 MB/s\nerasure_code_decode_warm: runtime =    3062591 usecs, bandwidth 137725 MB in 3.0626 sec = 44970.32 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r4-k10-p2-s65536.log": {
+      "sha256": "6f652db8a5a5da473a290029e2f0bf04d0c6f5c4ce98c338dddb18d6e66f9bd8",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3000522 usecs, bandwidth 57189 MB in 3.0005 sec = 19059.79 MB/s\nerasure_code_decode_warm: runtime =    3004577 usecs, bandwidth 139758 MB in 3.0046 sec = 46515.25 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r4-k10-p4-s65536.log": {
+      "sha256": "f5bee68e7eacba8c3595e2041e6b2010f91ef4d389867049b7673c96d2a1345c",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062340 usecs, bandwidth 25782 MB in 3.0623 sec = 8419.30 MB/s\nerasure_code_decode_warm: runtime =    3062462 usecs, bandwidth 146049 MB in 3.0625 sec = 47690.13 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r4-k10-p6-s65536.log": {
+      "sha256": "a82bbc9057b7149f0c7b9616521b3f9ff790212b03c76babb20d42aa9c8955ac",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062490 usecs, bandwidth 18898 MB in 3.0625 sec = 6170.95 MB/s\nerasure_code_decode_warm: runtime =    3000477 usecs, bandwidth 62846 MB in 3.0005 sec = 20945.42 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r4-k10-p7-s65536.log": {
+      "sha256": "5b80c55d3a7bb1149092791ec1c29cb11561a64d13378fb9e8d976d9c2e9dd71",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062952 usecs, bandwidth 17409 MB in 3.0630 sec = 5683.77 MB/s\nerasure_code_decode_warm: runtime =    3000779 usecs, bandwidth 133272 MB in 3.0008 sec = 44412.72 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r5-k10-p2-s65536.log": {
+      "sha256": "1d992ca01e14e57f78afda20db2487f255594c6c2007b1822f46c4833c8fe287",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062454 usecs, bandwidth 58403 MB in 3.0625 sec = 19070.84 MB/s\nerasure_code_decode_warm: runtime =    3004305 usecs, bandwidth 139750 MB in 3.0043 sec = 46516.57 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r5-k10-p4-s65536.log": {
+      "sha256": "88df72c1093754f491db5b3afef3a8749a71082d1dd6a3fec4af80d59a4c18f4",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062689 usecs, bandwidth 25752 MB in 3.0627 sec = 8408.46 MB/s\nerasure_code_decode_warm: runtime =    3005151 usecs, bandwidth 142790 MB in 3.0052 sec = 47515.32 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r5-k10-p6-s65536.log": {
+      "sha256": "7b2e2dfccf34844465a9b213452d7e538b563a50bf3a5cdb52b6f446a9aae066",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062727 usecs, bandwidth 18815 MB in 3.0627 sec = 6143.43 MB/s\nerasure_code_decode_warm: runtime =    3001608 usecs, bandwidth 63069 MB in 3.0016 sec = 21011.99 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r5-k10-p7-s65536.log": {
+      "sha256": "6d5f4dece64feb6596109ac7e1f3b900d815e712573113799651a570c27135cc",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062426 usecs, bandwidth 17383 MB in 3.0624 sec = 5676.38 MB/s\nerasure_code_decode_warm: runtime =    3062710 usecs, bandwidth 133865 MB in 3.0627 sec = 43708.12 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r6-k10-p2-s65536.log": {
+      "sha256": "1f492ce48bec8bea48dd046a62eba13223d052f7d591e2895b51bec16f90ff14",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062598 usecs, bandwidth 58678 MB in 3.0626 sec = 19159.82 MB/s\nerasure_code_decode_warm: runtime =    3062252 usecs, bandwidth 139638 MB in 3.0623 sec = 45599.86 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r6-k10-p4-s65536.log": {
+      "sha256": "029722231aa6a7d2731612c5d4c03922ad585be719cf73b4cbac86d1a77b1ef7",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062435 usecs, bandwidth 25794 MB in 3.0624 sec = 8422.94 MB/s\nerasure_code_decode_warm: runtime =    3011959 usecs, bandwidth 148242 MB in 3.0120 sec = 49217.84 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r6-k10-p6-s65536.log": {
+      "sha256": "ce87d251910b0923ab4522cd1525d4567fe9da71a92e4ca5a59ecba8e33a6f24",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062492 usecs, bandwidth 18913 MB in 3.0625 sec = 6175.74 MB/s\nerasure_code_decode_warm: runtime =    3000285 usecs, bandwidth 63092 MB in 3.0003 sec = 21028.70 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r6-k10-p7-s65536.log": {
+      "sha256": "99d0f4c96ccbdf91cb9b2718a626323222c1d4daec6364c7c1ad47e42bd7a2e3",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062616 usecs, bandwidth 17295 MB in 3.0626 sec = 5647.29 MB/s\nerasure_code_decode_warm: runtime =    3000207 usecs, bandwidth 130967 MB in 3.0002 sec = 43652.76 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r7-k10-p2-s65536.log": {
+      "sha256": "67e04e23ef130eea9af1092966a85c7a82ebf1080c009a4d211076986f05f6c7",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062557 usecs, bandwidth 58582 MB in 3.0626 sec = 19128.75 MB/s\nerasure_code_decode_warm: runtime =    3062229 usecs, bandwidth 140607 MB in 3.0622 sec = 45916.59 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r7-k10-p4-s65536.log": {
+      "sha256": "e8dacdcbb7e268ae7bf447f0efef0c33225546b4766d2d636db56d304ad17ba7",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062627 usecs, bandwidth 25765 MB in 3.0626 sec = 8412.83 MB/s\nerasure_code_decode_warm: runtime =    3062785 usecs, bandwidth 147537 MB in 3.0628 sec = 48170.90 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r7-k10-p6-s65536.log": {
+      "sha256": "f7e3a47ea4d8dc95e480e364ddb799eb68fbbd350e14635f2b317c1409666e97",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062587 usecs, bandwidth 18810 MB in 3.0626 sec = 6142.00 MB/s\nerasure_code_decode_warm: runtime =    3062586 usecs, bandwidth 64431 MB in 3.0626 sec = 21038.27 MB/s\ndone all: Pass\n"
+    },
+    "main/baseline/r7-k10-p7-s65536.log": {
+      "sha256": "ba330c1e62b9622e25e35fef78ee84182e12ca27e5f04af0489caf1abfa9ba84",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062339 usecs, bandwidth 17442 MB in 3.0623 sec = 5695.82 MB/s\nerasure_code_decode_warm: runtime =    3007787 usecs, bandwidth 130041 MB in 3.0078 sec = 43235.00 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r1-k10-p2-s65536.log": {
+      "sha256": "8a0b9252cabb5012ec67184a324aaa8cd03a2797a4f1a33d393a24cd87e392bb",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062504 usecs, bandwidth 57228 MB in 3.0625 sec = 18686.88 MB/s\nerasure_code_decode_warm: runtime =    3062618 usecs, bandwidth 143535 MB in 3.0626 sec = 46866.90 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r1-k10-p4-s65536.log": {
+      "sha256": "643af4894c6cb9e589cbd600465e214b01c5daa0d1ab0b4c001db0f7d8589f79",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062501 usecs, bandwidth 29339 MB in 3.0625 sec = 9580.38 MB/s\nerasure_code_decode_warm: runtime =    3062071 usecs, bandwidth 148174 MB in 3.0621 sec = 48390.26 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r1-k10-p6-s65536.log": {
+      "sha256": "cb634cce3f4a7da213ea2b1979cff6642e7465af4989836fa555594a76da6614",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062640 usecs, bandwidth 20990 MB in 3.0626 sec = 6853.69 MB/s\nerasure_code_decode_warm: runtime =    3062478 usecs, bandwidth 64024 MB in 3.0625 sec = 20906.25 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r1-k10-p7-s65536.log": {
+      "sha256": "2c0f3b8a0f6e8d4a90c39c1a882b70a4e046b2eefad7f9adca1c684dc3971ee1",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062595 usecs, bandwidth 20406 MB in 3.0626 sec = 6663.00 MB/s\nerasure_code_decode_warm: runtime =    3062538 usecs, bandwidth 134872 MB in 3.0625 sec = 44039.43 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r2-k10-p2-s65536.log": {
+      "sha256": "6e6161e729a1d22b629f8c0700f47ddcc97ab3530989ee8e57241e10b3976e8d",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062532 usecs, bandwidth 57570 MB in 3.0625 sec = 18798.42 MB/s\nerasure_code_decode_warm: runtime =    3062389 usecs, bandwidth 142679 MB in 3.0624 sec = 46590.74 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r2-k10-p4-s65536.log": {
+      "sha256": "3eab98eab32f9331768f7e5215367f676701db8f935afa0b1e78bf00008cd09c",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062666 usecs, bandwidth 30395 MB in 3.0627 sec = 9924.68 MB/s\nerasure_code_decode_warm: runtime =    3009377 usecs, bandwidth 147111 MB in 3.0094 sec = 48884.46 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r2-k10-p6-s65536.log": {
+      "sha256": "d973a23ae3846a2a243d75717ba6a1b7328764e9d8116c41afea6c819a468e8b",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062616 usecs, bandwidth 20919 MB in 3.0626 sec = 6830.46 MB/s\nerasure_code_decode_warm: runtime =    3000372 usecs, bandwidth 62974 MB in 3.0004 sec = 20988.92 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r2-k10-p7-s65536.log": {
+      "sha256": "8145b5fa7bce50aea0a00f5de9bc0765f2d621c7f4497c60fce6e4a28df6a2a5",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062573 usecs, bandwidth 20103 MB in 3.0626 sec = 6564.10 MB/s\nerasure_code_decode_warm: runtime =    3062601 usecs, bandwidth 137652 MB in 3.0626 sec = 44946.40 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r3-k10-p2-s65536.log": {
+      "sha256": "5ceae06513b2665956d0104865e9e097acfbb0bac56ddb9e083e72fdfe3a8b9c",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3005226 usecs, bandwidth 56312 MB in 3.0052 sec = 18738.17 MB/s\nerasure_code_decode_warm: runtime =    3004495 usecs, bandwidth 139033 MB in 3.0045 sec = 46275.14 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r3-k10-p4-s65536.log": {
+      "sha256": "05bb6566a4aca3feacc06d4e63f3cdb131acd1767f3ba6020af6c2c9efe108a8",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3003691 usecs, bandwidth 28858 MB in 3.0037 sec = 9607.60 MB/s\nerasure_code_decode_warm: runtime =    3007178 usecs, bandwidth 141520 MB in 3.0072 sec = 47060.90 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r3-k10-p6-s65536.log": {
+      "sha256": "278c63f1796273f5c5c59c66ede52e730cb790fd488459dd75d826a0f2f02455",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062534 usecs, bandwidth 20600 MB in 3.0625 sec = 6726.56 MB/s\nerasure_code_decode_warm: runtime =    3062404 usecs, bandwidth 63927 MB in 3.0624 sec = 20874.97 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r3-k10-p7-s65536.log": {
+      "sha256": "02a8949931ce100596cc591fde83d3567247b0c9659313fca38bd86076011ef5",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062514 usecs, bandwidth 20486 MB in 3.0625 sec = 6689.37 MB/s\nerasure_code_decode_warm: runtime =    3004317 usecs, bandwidth 132822 MB in 3.0043 sec = 44210.44 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r4-k10-p2-s65536.log": {
+      "sha256": "97be53210cd8df0fe6b8eeeb700ae20aae5eac0a7d8368dc190815805e8b3dfa",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3003761 usecs, bandwidth 56649 MB in 3.0038 sec = 18859.37 MB/s\nerasure_code_decode_warm: runtime =    3062410 usecs, bandwidth 140231 MB in 3.0624 sec = 45791.24 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r4-k10-p4-s65536.log": {
+      "sha256": "4708d07021a6eae3e733bbd19010301aedf0f08674441da1b2aa23a6a6dd6206",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062628 usecs, bandwidth 29306 MB in 3.0626 sec = 9569.20 MB/s\nerasure_code_decode_warm: runtime =    3001245 usecs, bandwidth 145259 MB in 3.0012 sec = 48399.61 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r4-k10-p6-s65536.log": {
+      "sha256": "48add4d500db6ca991d16e0829a846378e52564ed17d20407773d39ea9488386",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062698 usecs, bandwidth 21095 MB in 3.0627 sec = 6887.80 MB/s\nerasure_code_decode_warm: runtime =    3000924 usecs, bandwidth 63379 MB in 3.0009 sec = 21119.83 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r4-k10-p7-s65536.log": {
+      "sha256": "b7e2c4b1ac3e100a8559ec65d4b24d7142a9fc57770f715476797f20db4414af",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062614 usecs, bandwidth 20039 MB in 3.0626 sec = 6543.28 MB/s\nerasure_code_decode_warm: runtime =    3062351 usecs, bandwidth 135726 MB in 3.0624 sec = 44321.08 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r5-k10-p2-s65536.log": {
+      "sha256": "f6f7b58fd36a588c7d01aa452c82e53c6848ec8fc63e3737b3a657e1c06cda88",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062717 usecs, bandwidth 57435 MB in 3.0627 sec = 18753.12 MB/s\nerasure_code_decode_warm: runtime =    3062734 usecs, bandwidth 144102 MB in 3.0627 sec = 47050.36 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r5-k10-p4-s65536.log": {
+      "sha256": "16897eae2ea14d523bd3f3f9bd6e9d37b2013cdd13127bb77e5057ad03ed7f2a",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062422 usecs, bandwidth 30510 MB in 3.0624 sec = 9962.92 MB/s\nerasure_code_decode_warm: runtime =    3006870 usecs, bandwidth 148209 MB in 3.0069 sec = 49290.36 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r5-k10-p6-s65536.log": {
+      "sha256": "27f9d029fa10857ec8e09f9f589fc02df18ed629fc27deca3619ec14ddb98f76",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062428 usecs, bandwidth 20961 MB in 3.0624 sec = 6844.58 MB/s\nerasure_code_decode_warm: runtime =    3062506 usecs, bandwidth 64506 MB in 3.0625 sec = 21063.30 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r5-k10-p7-s65536.log": {
+      "sha256": "963dc7f15346eba63247fad895fd37921bdf8bde7475e5f0c88325f0a2f709a4",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3000595 usecs, bandwidth 19693 MB in 3.0006 sec = 6563.05 MB/s\nerasure_code_decode_warm: runtime =    3002085 usecs, bandwidth 131637 MB in 3.0021 sec = 43848.53 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r6-k10-p2-s65536.log": {
+      "sha256": "0ce0028d89f85b2cb5fb2ab8a615fd613e34842cf72e528ddc5ab36953260f9e",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062552 usecs, bandwidth 57902 MB in 3.0626 sec = 18906.66 MB/s\nerasure_code_decode_warm: runtime =    3062397 usecs, bandwidth 142569 MB in 3.0624 sec = 46554.85 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r6-k10-p4-s65536.log": {
+      "sha256": "d15f3d13f86b5e99380aa7449067edb1d89e8f0c83089da3916a9ef691daee4b",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062491 usecs, bandwidth 30580 MB in 3.0625 sec = 9985.47 MB/s\nerasure_code_decode_warm: runtime =    3015495 usecs, bandwidth 146182 MB in 3.0155 sec = 48477.12 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r6-k10-p6-s65536.log": {
+      "sha256": "6d521c3030f256cf92d4d233059d0fd77cdad48eb71d01d1cee19f4f2938af9e",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062617 usecs, bandwidth 20607 MB in 3.0626 sec = 6728.77 MB/s\nerasure_code_decode_warm: runtime =    3062426 usecs, bandwidth 64549 MB in 3.0624 sec = 21077.74 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r6-k10-p7-s65536.log": {
+      "sha256": "1b4efd9f73d10da93cc00ff0dc41df17ac2d8a4d8a71a3ac2ccdbd53ba4d3506",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062668 usecs, bandwidth 20167 MB in 3.0627 sec = 6584.99 MB/s\nerasure_code_decode_warm: runtime =    3000127 usecs, bandwidth 133564 MB in 3.0001 sec = 44519.44 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r7-k10-p2-s65536.log": {
+      "sha256": "2f1827c842f94caec133c13c7ebddea2484122995984f5b22eaa9ba371b3abd3",
+      "text": "Testing with 10 data buffers and 2 parity buffers (num errors = 1, in [ 6 ])\nerasure_code_perf: 12x65536 1\nerasure_code_encode_warm: runtime =    3062414 usecs, bandwidth 57908 MB in 3.0624 sec = 18909.57 MB/s\nerasure_code_decode_warm: runtime =    3062403 usecs, bandwidth 139716 MB in 3.0624 sec = 45623.27 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r7-k10-p4-s65536.log": {
+      "sha256": "8d19fb71b351406afa126e95c4dd2faecdf9fb252d04fb3b0b536dfc926c75b1",
+      "text": "Testing with 10 data buffers and 4 parity buffers (num errors = 1, in [ 4 ])\nerasure_code_perf: 14x65536 1\nerasure_code_encode_warm: runtime =    3062579 usecs, bandwidth 30476 MB in 3.0626 sec = 9951.33 MB/s\nerasure_code_decode_warm: runtime =    3008486 usecs, bandwidth 142976 MB in 3.0085 sec = 47524.23 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r7-k10-p6-s65536.log": {
+      "sha256": "0ab1147080240639b3ca636a424d4c58998823af00569c5afe714c0c7a89e8d5",
+      "text": "Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])\nerasure_code_perf: 16x65536 1\nerasure_code_encode_warm: runtime =    3062536 usecs, bandwidth 21063 MB in 3.0625 sec = 6877.89 MB/s\nerasure_code_decode_warm: runtime =    3000421 usecs, bandwidth 63077 MB in 3.0004 sec = 21022.94 MB/s\ndone all: Pass\n"
+    },
+    "main/candidate/r7-k10-p7-s65536.log": {
+      "sha256": "bc28290f929e9a08ff782e8de01372e4ce037b304ff5c50c31e2ed6c1499c578",
+      "text": "Testing with 10 data buffers and 7 parity buffers (num errors = 1, in [ 8 ])\nerasure_code_perf: 17x65536 1\nerasure_code_encode_warm: runtime =    3062499 usecs, bandwidth 19979 MB in 3.0625 sec = 6523.88 MB/s\nerasure_code_decode_warm: runtime =    3007235 usecs, bandwidth 132998 MB in 3.0072 sec = 44226.27 MB/s\ndone all: Pass\n"
+    },
+    "main/summary.csv": {
+      "sha256": "a870ab2ea91d68cb92df6d46d0badca016281c94efba8330e481e11f73ec1091",
+      "text": "version,case,direction,median_MB_s,gain_pct,paired_gain_pct,min_paired_gain_pct,cv_pct,repeats\r\nbaseline,k10-p2-s65536,decode,46515.25,0.0,0.0,0.0,1.17,7\r\nbaseline,k10-p2-s65536,encode,19093.12,0.0,0.0,0.0,0.2,7\r\nbaseline,k10-p4-s65536,decode,48512.64,0.0,0.0,0.0,1.98,7\r\nbaseline,k10-p4-s65536,encode,8414.51,0.0,0.0,0.0,0.29,7\r\nbaseline,k10-p6-s65536,decode,21028.7,0.0,0.0,0.0,0.25,7\r\nbaseline,k10-p6-s65536,encode,6159.27,0.0,0.0,0.0,0.26,7\r\nbaseline,k10-p7-s65536,decode,44164.18,0.0,0.0,0.0,1.36,7\r\nbaseline,k10-p7-s65536,encode,5659.14,0.0,0.0,0.0,0.38,7\r\ncandidate,k10-p2-s65536,decode,46554.85,0.09,-0.43,-1.96,1.14,7\r\ncandidate,k10-p2-s65536,encode,18798.42,-1.54,-1.54,-1.92,0.46,7\r\ncandidate,k10-p4-s65536,decode,48399.61,-0.23,-1.34,-3.86,1.58,7\r\ncandidate,k10-p4-s65536,encode,9924.68,17.95,18.29,13.66,2.03,7\r\ncandidate,k10-p6-s65536,decode,21022.94,-0.03,0.09,-0.94,0.43,7\r\ncandidate,k10-p6-s65536,encode,6844.58,11.13,11.28,8.95,0.98,7\r\ncandidate,k10-p7-s65536,decode,44226.27,0.14,0.32,-1.69,0.8,7\r\ncandidate,k10-p7-s65536,encode,6564.1,15.99,15.99,14.54,0.94,7\r\n"
+    },
+    "main/summary.json": {
+      "sha256": "99c639ccfa8ba9489dd9e5377d2b675c1be7803ea8fffbb85c8fb8fea9fd3cad",
+      "text": "[\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p2-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 46515.25,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 1.17,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p2-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 19093.12,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.2,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p4-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 48512.64,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 1.98,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p4-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 8414.51,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.29,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p6-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 21028.7,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.25,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p6-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6159.27,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.26,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p7-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 44164.18,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 1.36,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"baseline\",\n    \"case\": \"k10-p7-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 5659.14,\n    \"gain_pct\": 0.0,\n    \"paired_gain_pct\": 0.0,\n    \"min_paired_gain_pct\": 0.0,\n    \"cv_pct\": 0.38,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p2-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 46554.85,\n    \"gain_pct\": 0.09,\n    \"paired_gain_pct\": -0.43,\n    \"min_paired_gain_pct\": -1.96,\n    \"cv_pct\": 1.14,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p2-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 18798.42,\n    \"gain_pct\": -1.54,\n    \"paired_gain_pct\": -1.54,\n    \"min_paired_gain_pct\": -1.92,\n    \"cv_pct\": 0.46,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p4-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 48399.61,\n    \"gain_pct\": -0.23,\n    \"paired_gain_pct\": -1.34,\n    \"min_paired_gain_pct\": -3.86,\n    \"cv_pct\": 1.58,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p4-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 9924.68,\n    \"gain_pct\": 17.95,\n    \"paired_gain_pct\": 18.29,\n    \"min_paired_gain_pct\": 13.66,\n    \"cv_pct\": 2.03,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p6-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 21022.94,\n    \"gain_pct\": -0.03,\n    \"paired_gain_pct\": 0.09,\n    \"min_paired_gain_pct\": -0.94,\n    \"cv_pct\": 0.43,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p6-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6844.58,\n    \"gain_pct\": 11.13,\n    \"paired_gain_pct\": 11.28,\n    \"min_paired_gain_pct\": 8.95,\n    \"cv_pct\": 0.98,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p7-s65536\",\n    \"direction\": \"decode\",\n    \"median_MB_s\": 44226.27,\n    \"gain_pct\": 0.14,\n    \"paired_gain_pct\": 0.32,\n    \"min_paired_gain_pct\": -1.69,\n    \"cv_pct\": 0.8,\n    \"repeats\": 7\n  },\n  {\n    \"version\": \"candidate\",\n    \"case\": \"k10-p7-s65536\",\n    \"direction\": \"encode\",\n    \"median_MB_s\": 6564.1,\n    \"gain_pct\": 15.99,\n    \"paired_gain_pct\": 15.99,\n    \"min_paired_gain_pct\": 14.54,\n    \"cv_pct\": 0.94,\n    \"repeats\": 7\n  }\n]\n"
+    },
+    "vector-1.log": {
+      "sha256": "6967fe3ed52b85647e696e5a56ae1246f6a2d22f0cba174b481215861cc9bd49",
+      "text": "SVE vector length: 16 bytes\nPASS: 2244 matrix/length cases, 8748 encoder calls, exact-sized guarded tables/data\n"
+    },
+    "vector-2.log": {
+      "sha256": "7fe06fea6ed2c7ce13f575b29244c1246c2cb342c171eff0d98ba94b27ce0c8f",
+      "text": "SVE vector length: 32 bytes\nPASS: 2244 matrix/length cases, 8748 encoder calls, exact-sized guarded tables/data\n"
+    },
+    "vector-4.log": {
+      "sha256": "d8659b08deb18ab228abafa3733cb18022bc71831ce78813791cb66e31890242",
+      "text": "SVE vector length: 64 bytes\nPASS: 2244 matrix/length cases, 8748 encoder calls, exact-sized guarded tables/data\n"
+    }
+  }
+}
+
