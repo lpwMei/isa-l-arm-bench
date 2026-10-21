@@ -1,0 +1,184 @@
+{
+  "baseline": "8fa1e72fee7338fcfbf829b00f2f407631bd2dba",
+  "native_run_url": "https://github.com/lpwMei/isa-l-arm-bench/actions/runs/39434973237",
+  "archive_sha256": "c888c43efdc66eb0a7560859fe6e2ce2ffc3237bf515265507222f856b70f897",
+  "raw_process_logs": 104,
+  "performance_values": 208,
+  "checked_evidence_files": 117,
+  "official_checks_per_version": 17,
+  "native_guarded_encoder_calls": 21816,
+  "emulated_guarded_encoder_calls_per_width": 8748,
+  "performance_gates": [
+    {
+      "phase": "main",
+      "case": "k10-p2-s65536",
+      "direction": "encode",
+      "median_gain_pct": -1.54,
+      "repeats": 7
+    },
+    {
+      "phase": "main",
+      "case": "k10-p2-s65536",
+      "direction": "decode",
+      "median_gain_pct": 0.09,
+      "repeats": 7
+    },
+    {
+      "phase": "main",
+      "case": "k10-p4-s65536",
+      "direction": "encode",
+      "median_gain_pct": 17.95,
+      "repeats": 7
+    },
+    {
+      "phase": "main",
+      "case": "k10-p4-s65536",
+      "direction": "decode",
+      "median_gain_pct": -0.23,
+      "repeats": 7
+    },
+    {
+      "phase": "main",
+      "case": "k10-p6-s65536",
+      "direction": "encode",
+      "median_gain_pct": 11.13,
+      "repeats": 7
+    },
+    {
+      "phase": "main",
+      "case": "k10-p6-s65536",
+      "direction": "decode",
+      "median_gain_pct": -0.03,
+      "repeats": 7
+    },
+    {
+      "phase": "main",
+      "case": "k10-p7-s65536",
+      "direction": "encode",
+      "median_gain_pct": 15.99,
+      "repeats": 7
+    },
+    {
+      "phase": "main",
+      "case": "k10-p7-s65536",
+      "direction": "decode",
+      "median_gain_pct": 0.14,
+      "repeats": 7
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p4-s1048576",
+      "direction": "encode",
+      "median_gain_pct": 20.09,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p4-s1048576",
+      "direction": "decode",
+      "median_gain_pct": -0.06,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p4-s4096",
+      "direction": "encode",
+      "median_gain_pct": 20.16,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p4-s4096",
+      "direction": "decode",
+      "median_gain_pct": -2.3,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p6-s1048576",
+      "direction": "encode",
+      "median_gain_pct": 10.77,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p6-s1048576",
+      "direction": "decode",
+      "median_gain_pct": 0.05,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p6-s4096",
+      "direction": "encode",
+      "median_gain_pct": 10.84,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p6-s4096",
+      "direction": "decode",
+      "median_gain_pct": 0.02,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p7-s1048576",
+      "direction": "encode",
+      "median_gain_pct": 20.42,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p7-s1048576",
+      "direction": "decode",
+      "median_gain_pct": 0.01,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p7-s4096",
+      "direction": "encode",
+      "median_gain_pct": 20.87,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k10-p7-s4096",
+      "direction": "decode",
+      "median_gain_pct": -1.67,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k16-p4-s65536",
+      "direction": "encode",
+      "median_gain_pct": 19.22,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k16-p4-s65536",
+      "direction": "decode",
+      "median_gain_pct": 0.61,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k4-p4-s65536",
+      "direction": "encode",
+      "median_gain_pct": 18.82,
+      "repeats": 3
+    },
+    {
+      "phase": "guards",
+      "case": "k4-p4-s65536",
+      "direction": "decode",
+      "median_gain_pct": -0.22,
+      "repeats": 3
+    }
+  ],
+  "kunpeng950_status": "Not measured; real-server revalidation required",
+  "status": "PASS"
+}
+
