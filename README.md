@@ -1,22 +1,40 @@
 # ISA-L native ARM benchmarks
 
-使用 GitHub Actions 的 `ubuntu-24.04-arm` 免费标准 runner，运行公开 ISA-L 源码的官方 benchmark。虚拟机随作业启动，结束后自动释放。
+使用免费的GitHub Actions `ubuntu-24.04-arm`运行原生AArch64实验。
+当前机器为Neoverse-N2、SVE/SVE2 128位；本仓库不宣称鲲鹏950已经达标。
 
-## 已完成的实验
+## EC 编码优化已完成云端验收
 
-- [成功运行 #2](https://github.com/lpwMei/isa-l-arm-bench/actions/runs/39422044652)
+相对固定ISA-L主干，官方benchmark、同机交替七轮的编码吞吐中位数：
+
+| 配置 | 提升 |
+|---|---:|
+| 10+4，64 KiB/块 | **17.95%** |
+| 10+6，64 KiB/块 | **11.13%** |
+| 10+7，64 KiB/块 | **15.99%** |
+
+最终只改动一个C源文件中的4行。p=2及恢复保护项、两版各17项官方测试、
+保护页reference检查、128/256/512位正确性检查均通过。4 KiB、1 MiB及额外
+源数量的编码检查也超过10%。收益按重复试验中位数计算，单轮仍有波动。
+
+- [完整EC报告](EC-RESULTS-2026-10-20.md)
+- [可应用补丁](ec-sve-table4.patch)
+- [EC主验收CSV](ec-summary.csv)
+- [原始日志与环境证据](EC-EVIDENCE-2026-10-20.json)
+- [预先固定的验收门限](ACCEPTANCE.md)
+- [成功工作流](https://github.com/lpwMei/isa-l-arm-bench/actions/runs/39434973237)
+- [实验代码及950复验脚本](https://github.com/lpwMei/isa-l-arm-bench/tree/codex/ec-sve-opt/experiments/ec-sve)
+
+950须运行同样脚本重新验收，不能直接外推N2收益。更宽向量检查使用QEMU，
+只用于正确性，不产生性能结果。ZIP解包、Crypto继承补丁与Redis Cluster CRC16
+尚未实施；建议下一项先处理CRC短包路径。
+
+## 最初的上游版本对比
+
+- [稳定版/固定主干成功实验](https://github.com/lpwMei/isa-l-arm-bench/actions/runs/39422044652)
 - [完整结果与分析](RESULTS-2026-10-20.md)
-- [35项基准汇总 CSV](summary.csv)
-- [工作流](https://github.com/lpwMei/isa-l-arm-bench/blob/codex/isa-l-arm-benchmark/.github/workflows/isa-l-arm-benchmark.yml)
+- [35项基准汇总CSV](summary.csv)
+- [原工作流](https://github.com/lpwMei/isa-l-arm-bench/blob/codex/isa-l-arm-benchmark/.github/workflows/isa-l-arm-benchmark.yml)
 
-环境为 Neoverse-N2、4 vCPU、约16GB内存，支持 SVE/SVE2，默认向量长度128位。使用 GCC 13.3.0，固定 CPU 0，5轮交替运行稳定版与固定主干快照。
-
-两版各17项 `make check` 全部通过；共取得350个吞吐值。主干的 EC 10+2 编码提高30.46%，EC 10+4/6/7 编码下降约13%~15%，CRC32C 64B下降21.84%，六项 inflate 基准基本持平。
-
-以上是既有上游版本的比较，没有新增优化补丁；也不代表鲲鹏950的性能结果。下一步可针对 CRC 短包调度、EC 输出分组与寄存器压力、inflate 回溯复制进行专项实验。
-
-## 范围
-
-本轮覆盖 CRC、EC 编码/恢复、raw DEFLATE 解压。完整 ZIP 解包、EC update、Crypto 继承补丁与 Redis Cluster CRC16 需要专项测试。
-
-原始环境、构建、正确性及性能日志见成功运行页面的 artifact（保留7天）。更完整的出处、版本 SHA、测量口径和局限见结果报告。
+最初的350个吞吐值是既有上游版本之间的比较。当时观察到EC多路编码回退，
+因此选为本次首项优化。该对比与本次补丁验收采用不同基线，不能混合计算提升。
