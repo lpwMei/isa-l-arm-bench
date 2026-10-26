@@ -1,0 +1,68 @@
+2026-10-26T09:31:17,909656997+00:00
+uid=1007 gid=1007 groups=1007
+START repeated round=1 baseline SET n=10000000
+DONE baseline SET 870170.56 ops/s
+START repeated round=1 baseline GET n=10000000
+DONE baseline GET 1013684.75 ops/s
+START repeated round=1 candidate SET n=10000000
+DONE candidate SET 991670.00 ops/s
+START repeated round=1 candidate GET n=10000000
+DONE candidate GET 1190334.50 ops/s
+START repeated round=2 candidate SET n=10000000
+DONE candidate SET 960338.00 ops/s
+START repeated round=2 candidate GET n=10000000
+DONE candidate GET 1090274.75 ops/s
+START repeated round=2 baseline SET n=10000000
+DONE baseline SET 866851.56 ops/s
+START repeated round=2 baseline GET n=10000000
+DONE baseline GET 1005935.00 ops/s
+START repeated round=3 baseline SET n=10000000
+DONE baseline SET 865426.19 ops/s
+START repeated round=3 baseline GET n=10000000
+DONE baseline GET 1002204.88 ops/s
+START repeated round=3 candidate SET n=10000000
+DONE candidate SET 995718.38 ops/s
+START repeated round=3 candidate GET n=10000000
+DONE candidate GET 1173158.12 ops/s
+START repeated round=4 candidate SET n=10000000
+DONE candidate SET 992161.88 ops/s
+START repeated round=4 candidate GET n=10000000
+DONE candidate GET 1192321.50 ops/s
+START repeated round=4 baseline SET n=10000000
+DONE baseline SET 854847.00 ops/s
+START repeated round=4 baseline GET n=10000000
+DONE baseline GET 955748.81 ops/s
+START repeated round=5 baseline SET n=10000000
+DONE baseline SET 769053.25 ops/s
+START repeated round=5 baseline GET n=10000000
+DONE baseline GET 903668.88 ops/s
+START repeated round=5 candidate SET n=10000000
+DONE candidate SET 686341.81 ops/s
+START repeated round=5 candidate GET n=10000000
+DONE candidate GET 885739.62 ops/s
+START repeated round=6 candidate SET n=10000000
+DONE candidate SET 931445.62 ops/s
+START repeated round=6 candidate GET n=10000000
+DONE candidate GET 1097333.50 ops/s
+START repeated round=6 baseline SET n=10000000
+DONE baseline SET 844380.62 ops/s
+START repeated round=6 baseline GET n=10000000
+DONE baseline GET 970873.75 ops/s
+PASS repeated: 24 measurements
+START client4 round=1 baseline SET n=10000000
+DONE baseline SET 798403.19 ops/s
+START client4 round=1 baseline GET n=10000000
+DONE baseline GET 907523.38 ops/s
+START client4 round=1 candidate SET n=10000000
+DONE candidate SET 867904.88 ops/s
+START client4 round=1 candidate GET n=10000000
+DONE candidate GET 1050751.25 ops/s
+START client4 round=2 candidate SET n=10000000
+DONE candidate SET 907688.12 ops/s
+START client4 round=2 candidate GET n=10000000
+DONE candidate GET 1050861.75 ops/s
+START client4 round=2 baseline SET n=10000000
+DONE baseline SET 768049.12 ops/s
+START client4 round=2 baseline GET n=10000000
+DONE baseline GET 907276.31 ops/s
+PASS client4: 8 measurements

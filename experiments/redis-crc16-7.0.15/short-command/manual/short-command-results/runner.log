@@ -1,0 +1,58 @@
+2026-10-26T20:12:32,564063735+08:00
+uid=1007 gid=1007 groups=1007
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
+ID="openEuler"
+VERSION_ID="24.03"
+PRETTY_NAME="openEuler 24.03 (LTS-SP3)"
+ANSI_COLOR="0;31"
+
+OK
+cluster_state:ok
+cluster_slots_assigned:16384
+cluster_slots_ok:16384
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:1
+cluster_size:1
+cluster_current_epoch:0
+cluster_my_epoch:0
+cluster_stats_messages_sent:0
+cluster_stats_messages_received:0
+total_cluster_links_buffer_limit_exceeded:0
+pid 17's current affinity list: 340
+pid 21's current affinity list: 340
+pid 22's current affinity list: 340
+pid 23's current affinity list: 340
+pid 24's current affinity list: 340
+Started baseline; logs: /manual/runs/baseline.9nbUnd
+2026-10-26T20:12:34,659610958+08:00
+Stage: baseline-set, server PID: 17
+2026-10-26T20:14:09,182100725+08:00
+Stage: baseline-get, server PID: 17
+Stopped baseline
+OK
+cluster_state:ok
+cluster_slots_assigned:16384
+cluster_slots_ok:16384
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:1
+cluster_size:1
+cluster_current_epoch:0
+cluster_my_epoch:0
+cluster_stats_messages_sent:0
+cluster_stats_messages_received:0
+total_cluster_links_buffer_limit_exceeded:0
+pid 113's current affinity list: 340
+pid 118's current affinity list: 340
+pid 119's current affinity list: 340
+pid 120's current affinity list: 340
+pid 121's current affinity list: 340
+Started optimized; logs: /manual/runs/optimized.NuNcHq
+2026-10-26T20:15:37,117072836+08:00
+Stage: optimized-set, server PID: 113
+2026-10-26T20:17:00,614859046+08:00
+Stage: optimized-get, server PID: 113
+Stopped optimized
+2026-10-26T20:18:11,004049626+08:00

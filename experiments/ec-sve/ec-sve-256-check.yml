@@ -1,0 +1,50 @@
+name: EC SVE vector length correctness
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/ec-sve-opt]
+    paths: [.github/workflows/ec-sve-256-check.yml]
+permissions:
+  contents: read
+jobs:
+  vector-lengths:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build and emulation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential autoconf automake libtool zlib1g-dev python3 qemu-user
+      - name: Build patched library and check 128, 256 and 512-bit vectors
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ec-vector-correctness"
+          mkdir -p "$ROOT/results"
+          git init "$ROOT/baseline"
+          git -C "$ROOT/baseline" remote add origin https://github.com/intel/isa-l.git
+          git -C "$ROOT/baseline" fetch --depth 1 origin 8fa1e72fee7338fcfbf829b00f2f407631bd2dba
+          git -C "$ROOT/baseline" checkout --detach FETCH_HEAD
+          python3 experiments/ec-sve/generate_candidates.py "$ROOT/baseline" "$ROOT/candidate" adaptive
+          (
+            cd "$ROOT/candidate"
+            ./autogen.sh
+            ./configure CFLAGS='-O3 -g'
+            make -j"$(nproc)"
+          ) > "$ROOT/results/build.log" 2>&1
+          gcc -O2 -Wall -Wextra -DEC_BOUNDARY_QUICK -I"$ROOT/candidate/include" \
+            experiments/ec-sve/check_boundaries.c "$ROOT/candidate/.libs/libisal.a" -o "$ROOT/check"
+          qemu-aarch64 --version > "$ROOT/results/emulator.txt"
+          for VQ in 1 2 4; do
+            qemu-aarch64 -cpu max,sve-max-vq="$VQ" "$ROOT/check" > "$ROOT/results/vector-$VQ.log" 2>&1
+            grep "SVE vector length: $((VQ * 16)) bytes" "$ROOT/results/vector-$VQ.log"
+            cat "$ROOT/results/vector-$VQ.log"
+          done
+          printf '%s\n' 'Correctness only: QEMU results are not performance measurements.' > "$ROOT/results/README.txt"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ec-vector-correctness-${{ github.run_id }}
+          path: ${{ runner.temp }}/ec-vector-correctness/results
+          retention-days: 14

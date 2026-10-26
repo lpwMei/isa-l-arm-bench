@@ -1,0 +1,62 @@
+#!/usr/bin/env bpftrace
+/*
+ * crc16_len_dist.bt — Quick bpftrace script for crc16 len distribution.
+ *
+ * Usage:
+ *   sudo bpftrace crc16_len_dist.bt <path-to-binary>
+ *
+ *   # Example:
+ *   sudo bpftrace crc16_len_dist.bt ./crc16_xmodem_bench
+ *
+ * This is the "fast and simple" version — no compilation needed.
+ * For a richer output with linear histograms and percentiles,
+ * use the compiled C version (crc16_len_dist.c).
+ *
+ * Notes:
+ *   - On AARCH64, function arg 2 (len) is in register x2.
+ *     In bpftrace, use arg2 for the 3rd positional argument.
+ *   - If bpftrace complains about arg2, use:
+ *       ((struct user_pt_regs *)ctx)->regs[2]
+ *     (uncomment the alternative line below).
+ */
+
+uprobe:$1:crc16_xmodem
+{
+    /* Primary: bpftrace arg2 (maps to x2 on AARCH64, rdx on x86_64). */
+    $len = arg2;
+
+    /* Alternative for AARCH64 if arg2 doesn't resolve:
+     * $len = ((struct user_pt_regs *)ctx)->regs[2];
+     */
+
+    /* Power-of-2 histogram (log-scale buckets). */
+    @len_p2   = hist($len);
+
+    /* Linear histogram (0-1024, step 16). */
+    @len_lin  = lhist($len, 0, 1024, 16);
+
+    /* Count per exact length (top entries shown at end). */
+    @exact[$len] = count();
+
+    /* Track dispatch path: scalar(<16), short(16-63), pmull(>=64). */
+    if ($len < 16) {
+        @dispatch_scalar = count();
+    } else if ($len < 64) {
+        @dispatch_short = count();
+    } else {
+        @dispatch_pmull = count();
+    }
+
+    @total = count();
+}
+
+interval:s:2
+{
+    printf("\033[2J\033[H");   /* clear screen */
+}
+
+END
+{
+    printf("\n\033[2K═══ crc16_xmodem() len distribution ═══\n");
+    printf("Total calls: %lld\n\n", @total);
+}

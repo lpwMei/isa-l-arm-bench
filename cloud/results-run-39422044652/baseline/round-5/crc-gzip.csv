@@ -1,0 +1,9 @@
+Running benchmark with specified buffer sizes: 16,64,256,1024,4096,65536,1048576
+crc_type,buffer_size,throughput
+crc32_gzip_refl,16,4175.83
+crc32_gzip_refl,64,16702.99
+crc32_gzip_refl,256,27143.64
+crc32_gzip_refl,1024,26093.04
+crc32_gzip_refl,4096,26130.44
+crc32_gzip_refl,65536,26137.44
+crc32_gzip_refl,1048576,25994.02

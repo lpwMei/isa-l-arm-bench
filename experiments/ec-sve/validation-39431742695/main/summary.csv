@@ -1,0 +1,17 @@
+version,case,direction,median_MB_s,gain_pct,paired_gain_pct,min_paired_gain_pct,cv_pct,repeats
+baseline,k10-p2-s65536,decode,45834.8,0.0,0.0,0.0,1.45,7
+baseline,k10-p2-s65536,encode,19084.99,0.0,0.0,0.0,0.48,7
+baseline,k10-p4-s65536,decode,48421.96,0.0,0.0,0.0,1.73,7
+baseline,k10-p4-s65536,encode,8409.38,0.0,0.0,0.0,0.33,7
+baseline,k10-p6-s65536,decode,21042.9,0.0,0.0,0.0,0.38,7
+baseline,k10-p6-s65536,encode,6158.63,0.0,0.0,0.0,0.24,7
+baseline,k10-p7-s65536,decode,43733.71,0.0,0.0,0.0,0.84,7
+baseline,k10-p7-s65536,encode,5671.14,0.0,0.0,0.0,0.56,7
+candidate,k10-p2-s65536,decode,46912.21,2.35,1.9,0.32,1.09,7
+candidate,k10-p2-s65536,encode,18852.63,-1.22,-1.19,-2.84,0.82,7
+candidate,k10-p4-s65536,decode,48400.55,-0.04,1.98,-3.15,2.72,7
+candidate,k10-p4-s65536,encode,9366.57,11.38,11.21,10.44,0.55,7
+candidate,k10-p6-s65536,decode,21069.59,0.13,0.13,-0.21,0.21,7
+candidate,k10-p6-s65536,encode,6583.93,6.91,6.86,6.38,0.39,7
+candidate,k10-p7-s65536,decode,43767.92,0.08,-0.04,-0.88,2.59,7
+candidate,k10-p7-s65536,encode,6043.96,6.57,6.58,5.62,0.28,7

@@ -1,0 +1,136 @@
+--- a/erasure_code/aarch64/gf_nvect_dot_prod_sve.c
++++ b/erasure_code/aarch64/gf_nvect_dot_prod_sve.c
+@@ -81,14 +81,21 @@
+                 return;
+ 
+         const svuint8_t mask0f = svdup_u8(0x0f);
+-        const svbool_t predicate_true = svptrue_b8();
++        // TBL indices are nibbles: load exactly the 16-byte half-table,
++        // including when the hardware vector length exceeds 128 bits.
++        const svbool_t predicate_true = svptrue_pat_b8(SV_VL16);
+         int sve_len = svcntb();
+         int pos = 0;
++        // Four batches are beneficial for one/two outputs. Larger output groups
++        // need two batches to keep the live vector set within the register file.
++        const int batches = nvect <= 2 ? 4 : 2;
+ 
+         // 4x unrolled main loop - SVE predicates handle ALL remaining data automatically
+         int is_all_one[7] = { 0 };
++        int needs_tables = 0;
+         for (int d = 0; d < nvect && d < 7; d++) {
+                 is_all_one[d] = is_dest_coeff_all_one(gftbls, vlen, d);
++                needs_tables |= !is_all_one[d];
+         }
+ 
+         while (pos < len) {
+@@ -149,8 +156,8 @@
+                         svuint8_t src_lo1 = svdup_u8(0), src_hi1 = svdup_u8(0);
+                         svuint8_t src_lo2 = svdup_u8(0), src_hi2 = svdup_u8(0);
+                         svuint8_t src_lo3 = svdup_u8(0), src_hi3 = svdup_u8(0);
+-                        for (int d = 0; d < nvect; d++) {
+-                                if (!is_all_one[d]) {
++                        if (nvect > 2) {
++                                if (needs_tables) {
+                                         src_lo0 = svand_x(predicate_0, src_data0, mask0f);
+                                         src_hi0 = svlsr_x(predicate_0, src_data0, 4);
+                                         src_lo1 = svand_x(predicate_1, src_data1, mask0f);
+@@ -159,7 +166,20 @@
+                                         src_hi2 = svlsr_x(predicate_2, src_data2, 4);
+                                         src_lo3 = svand_x(predicate_3, src_data3, mask0f);
+                                         src_hi3 = svlsr_x(predicate_3, src_data3, 4);
+-                                        break;
++                                }
++                        } else {
++                                for (int d = 0; d < nvect; d++) {
++                                        if (!is_all_one[d]) {
++                                                src_lo0 = svand_x(predicate_0, src_data0, mask0f);
++                                                src_hi0 = svlsr_x(predicate_0, src_data0, 4);
++                                                src_lo1 = svand_x(predicate_1, src_data1, mask0f);
++                                                src_hi1 = svlsr_x(predicate_1, src_data1, 4);
++                                                src_lo2 = svand_x(predicate_2, src_data2, mask0f);
++                                                src_hi2 = svlsr_x(predicate_2, src_data2, 4);
++                                                src_lo3 = svand_x(predicate_3, src_data3, mask0f);
++                                                src_hi3 = svlsr_x(predicate_3, src_data3, 4);
++                                                break;
++                                        }
+                                 }
+                         }
+ 
+@@ -253,48 +273,62 @@
+                 case 7:
+                         svst1_u8(predicate_0, &dest[6][pos + sve_len * 0], dest_acc0_6);
+                         svst1_u8(predicate_1, &dest[6][pos + sve_len * 1], dest_acc1_6);
+-                        svst1_u8(predicate_2, &dest[6][pos + sve_len * 2], dest_acc2_6);
+-                        svst1_u8(predicate_3, &dest[6][pos + sve_len * 3], dest_acc3_6);
++                        if (batches == 4) {
++                                svst1_u8(predicate_2, &dest[6][pos + sve_len * 2], dest_acc2_6);
++                                svst1_u8(predicate_3, &dest[6][pos + sve_len * 3], dest_acc3_6);
++                        }
+                         // fallthrough
+                 case 6:
+                         svst1_u8(predicate_0, &dest[5][pos + sve_len * 0], dest_acc0_5);
+                         svst1_u8(predicate_1, &dest[5][pos + sve_len * 1], dest_acc1_5);
+-                        svst1_u8(predicate_2, &dest[5][pos + sve_len * 2], dest_acc2_5);
+-                        svst1_u8(predicate_3, &dest[5][pos + sve_len * 3], dest_acc3_5);
++                        if (batches == 4) {
++                                svst1_u8(predicate_2, &dest[5][pos + sve_len * 2], dest_acc2_5);
++                                svst1_u8(predicate_3, &dest[5][pos + sve_len * 3], dest_acc3_5);
++                        }
+                         // fallthrough
+                 case 5:
+                         svst1_u8(predicate_0, &dest[4][pos + sve_len * 0], dest_acc0_4);
+                         svst1_u8(predicate_1, &dest[4][pos + sve_len * 1], dest_acc1_4);
+-                        svst1_u8(predicate_2, &dest[4][pos + sve_len * 2], dest_acc2_4);
+-                        svst1_u8(predicate_3, &dest[4][pos + sve_len * 3], dest_acc3_4);
++                        if (batches == 4) {
++                                svst1_u8(predicate_2, &dest[4][pos + sve_len * 2], dest_acc2_4);
++                                svst1_u8(predicate_3, &dest[4][pos + sve_len * 3], dest_acc3_4);
++                        }
+                         // fallthrough
+                 case 4:
+                         svst1_u8(predicate_0, &dest[3][pos + sve_len * 0], dest_acc0_3);
+                         svst1_u8(predicate_1, &dest[3][pos + sve_len * 1], dest_acc1_3);
+-                        svst1_u8(predicate_2, &dest[3][pos + sve_len * 2], dest_acc2_3);
+-                        svst1_u8(predicate_3, &dest[3][pos + sve_len * 3], dest_acc3_3);
++                        if (batches == 4) {
++                                svst1_u8(predicate_2, &dest[3][pos + sve_len * 2], dest_acc2_3);
++                                svst1_u8(predicate_3, &dest[3][pos + sve_len * 3], dest_acc3_3);
++                        }
+                         // fallthrough
+                 case 3:
+                         svst1_u8(predicate_0, &dest[2][pos + sve_len * 0], dest_acc0_2);
+                         svst1_u8(predicate_1, &dest[2][pos + sve_len * 1], dest_acc1_2);
+-                        svst1_u8(predicate_2, &dest[2][pos + sve_len * 2], dest_acc2_2);
+-                        svst1_u8(predicate_3, &dest[2][pos + sve_len * 3], dest_acc3_2);
++                        if (batches == 4) {
++                                svst1_u8(predicate_2, &dest[2][pos + sve_len * 2], dest_acc2_2);
++                                svst1_u8(predicate_3, &dest[2][pos + sve_len * 3], dest_acc3_2);
++                        }
+                         // fallthrough
+                 case 2:
+                         svst1_u8(predicate_0, &dest[1][pos + sve_len * 0], dest_acc0_1);
+                         svst1_u8(predicate_1, &dest[1][pos + sve_len * 1], dest_acc1_1);
+-                        svst1_u8(predicate_2, &dest[1][pos + sve_len * 2], dest_acc2_1);
+-                        svst1_u8(predicate_3, &dest[1][pos + sve_len * 3], dest_acc3_1);
++                        if (batches == 4) {
++                                svst1_u8(predicate_2, &dest[1][pos + sve_len * 2], dest_acc2_1);
++                                svst1_u8(predicate_3, &dest[1][pos + sve_len * 3], dest_acc3_1);
++                        }
+                         // fallthrough
+                 case 1:
+                         svst1_u8(predicate_0, &dest[0][pos + sve_len * 0], dest_acc0_0);
+                         svst1_u8(predicate_1, &dest[0][pos + sve_len * 1], dest_acc1_0);
+-                        svst1_u8(predicate_2, &dest[0][pos + sve_len * 2], dest_acc2_0);
+-                        svst1_u8(predicate_3, &dest[0][pos + sve_len * 3], dest_acc3_0);
++                        if (batches == 4) {
++                                svst1_u8(predicate_2, &dest[0][pos + sve_len * 2], dest_acc2_0);
++                                svst1_u8(predicate_3, &dest[0][pos + sve_len * 3], dest_acc3_0);
++                        }
+                         break;
+                 }
+ 
+-                pos += sve_len * 4;
++                pos += sve_len * batches;
+         }
+ }
+ 

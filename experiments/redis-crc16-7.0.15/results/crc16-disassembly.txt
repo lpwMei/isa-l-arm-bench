@@ -1,0 +1,25 @@
+00000000004b8990 <crc16>:
+  4b8990:	93407c22 	sxtw	x2, w1
+  4b8994:	aa0003e1 	mov	x1, x0
+  4b8998:	7100fc5f 	cmp	w2, #0x3f
+  4b899c:	5400024c 	b.gt	4b89e4 <crc16+0x54>
+  4b89a0:	52800000 	mov	w0, #0x0                   	// #0
+  4b89a4:	7100005f 	cmp	w2, #0x0
+  4b89a8:	5400004c 	b.gt	4b89b0 <crc16+0x20>
+  4b89ac:	d65f03c0 	ret
+  4b89b0:	d2800003 	mov	x3, #0x0                   	// #0
+  4b89b4:	52800000 	mov	w0, #0x0                   	// #0
+  4b89b8:	b00008e6 	adrp	x6, 5d5000 <CSWTCH.228+0xb0>
+  4b89bc:	912d80c6 	add	x6, x6, #0xb60
+  4b89c0:	38636825 	ldrb	w5, [x1, x3]
+  4b89c4:	53181c04 	ubfiz	w4, w0, #8, #8
+  4b89c8:	91000463 	add	x3, x3, #0x1
+  4b89cc:	4a4020a0 	eor	w0, w5, w0, lsr #8
+  4b89d0:	7860d8c0 	ldrh	w0, [x6, w0, sxtw #1]
+  4b89d4:	4a040000 	eor	w0, w0, w4
+  4b89d8:	6b03005f 	cmp	w2, w3
+  4b89dc:	54ffff2c 	b.gt	4b89c0 <crc16+0x30>
+  4b89e0:	d65f03c0 	ret
+  4b89e4:	90000fc4 	adrp	x4, 6b0000 <io_threads_mutex+0x10c0>
+  4b89e8:	d2800003 	mov	x3, #0x0                   	// #0
+  4b89ec:	52800000 	mov	w0, #0x0                   	// #0

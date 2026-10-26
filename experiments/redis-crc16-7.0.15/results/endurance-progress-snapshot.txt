@@ -1,0 +1,12 @@
+2026-10-26T17:42:32,187572970+08:00
+total_commands_processed:180244537
+instantaneous_ops_per_sec:847064
+total_error_replies:1
+cluster_state:ok
+cluster_slots_assigned:16384
+cluster_slots_ok:16384
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:1
+cluster_size:1
+cluster_current_epoch:0

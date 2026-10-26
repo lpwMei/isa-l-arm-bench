@@ -1,0 +1,4 @@
+cpu=0
+baseline=7c3479e0a9dac17f448603ec1ad64c7c625f530c
+upstream=8fa1e72fee7338fcfbf829b00f2f407631bd2dba
+repeats=5

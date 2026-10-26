@@ -1,0 +1,17 @@
+2026-10-26T17:50:35,626736270+08:00
+CPU CORE SOCKET NODE
+320  160      1    0
+321  160      1    0
+322  161      1    0
+323  161      1    0
+324  162      1    0
+325  162      1    0
+326  163      1    0
+327  163      1    0
+328  164      1    0
+329  164      1    0
+pid 1405685's current affinity list: 320
+pid 1405687's current affinity list: 320
+pid 1405688's current affinity list: 320
+pid 1405689's current affinity list: 320
+pid 1405690's current affinity list: 320

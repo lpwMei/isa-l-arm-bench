@@ -1,7 +1,30 @@
 # ISA-L native ARM benchmarks
 
-使用免费的GitHub Actions `ubuntu-24.04-arm`运行原生AArch64实验。
-当前机器为Neoverse-N2、SVE/SVE2 128位；本仓库不宣称鲲鹏950已经达标。
+本仓库分别保存Neoverse-N2上的ISA-L EC实验，以及鲲鹏950上的Redis CRC16实验；两类机器、工作负载和测量口径分开记录。
+
+## 2026-10-26：鲲鹏950 Redis CRC16阶段成果
+
+当前实现为Redis 7.0.15接入指定上游的完整dispatch，保留上游分发规则，仅增加经确认的short尾部正确性修复。
+
+- [阶段索引与验收边界](CHECKPOINT-2026-10-26.md)
+- [当前完整dispatch复测报告](experiments/redis-crc16-7.0.15/dispatch/完整dispatch复测报告.md)
+- [当前组合补丁](experiments/redis-crc16-7.0.15/dispatch/redis-7.0.15-crc16-dispatch-fixed.patch)
+- [独立short尾部修复](experiments/redis-crc16-7.0.15/dispatch/redis-7.0.15-crc16-short-tail-fix.patch)
+- [手动复测步骤及固定短命令](experiments/redis-crc16-7.0.15/手动测试步骤.md)
+- [完整交付ZIP](experiments/redis-crc16-7.0.15-delivery.zip)
+- [950实测二进制及测试程序](deliverables/redis-crc16-kp950-20261026/github-checkpoint-binaries.tar.gz)
+- [全部文件SHA256清单](CHECKPOINT-MANIFEST-2026-10-26.json)
+
+当前验证：各362,327个PMULL/硬件回退/标量差分用例、65,792个多seed用例、129个分发路由用例、34个实际Redis槽位用例及原生cluster/string/keyspace回归通过。同一固定短命令的原版/新版本SET/GET各1亿请求已完成。
+
+| 当前一轮带perf复测 | 原版ops/s | 完整dispatch修复版ops/s | 原版CRC用户态cycles | 修复版CRC相关栈用户态cycles |
+|---|---:|---:|---:|---:|
+| SET | 1,086,791.12 | 1,303,237.25 | 25.24% | 0.45% |
+| GET | 1,227,189.62 | 1,481,591.12 | 30.15% | 0.60% |
+
+以上是单轮、包含perf采样开销的结果，不作为多轮稳定收益结论。100亿请求旧负载已因切换口径终止；ICIT指定镜像、64GB DIMM、双100GE外部压测尚未完成验收。
+
+火焰图：[原版SET PNG](experiments/redis-crc16-7.0.15/dispatch/test-results/dispatch-work/profile-results/baseline-set.png)、[原版GET PNG](experiments/redis-crc16-7.0.15/dispatch/test-results/dispatch-work/profile-results/baseline-get.png)、[修复版SET PNG](experiments/redis-crc16-7.0.15/dispatch/test-results/dispatch-work/profile-results/optimized-set.png)、[修复版GET PNG](experiments/redis-crc16-7.0.15/dispatch/test-results/dispatch-work/profile-results/optimized-get.png)。同目录保留交互SVG、原始perf.data、解码栈和折叠栈；SVG可下载到浏览器中交互查看。
 
 ## EC 编码优化已完成云端验收
 
@@ -26,8 +49,7 @@
 - [实验代码及950复验脚本](https://github.com/lpwMei/isa-l-arm-bench/tree/codex/ec-sve-opt/experiments/ec-sve)
 
 950须运行同样脚本重新验收，不能直接外推N2收益。更宽向量检查使用QEMU，
-只用于正确性，不产生性能结果。ZIP解包、Crypto继承补丁与Redis Cluster CRC16
-尚未实施；建议下一项先处理CRC短包路径。
+只用于正确性，不产生性能结果。ZIP解包、Crypto继承补丁尚未实施；Redis Cluster CRC16已进入上述独立的950阶段验证。
 
 ## 最初的上游版本对比
 

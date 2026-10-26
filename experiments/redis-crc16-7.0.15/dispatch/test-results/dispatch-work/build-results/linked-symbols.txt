@@ -1,0 +1,9 @@
+00000000004b8a50 T crc16
+000000000043fda0 t crc16InitPmull
+00000000006b0b80 b crc16_has_pmull
+00000000005126a0 T crc16_xmodem
+00000000005126f0 T crc16_xmodem_pmull
+0000000000512c10 T crc16_xmodem_pmull_8way
+0000000000513210 T crc16_xmodem_pmull_opt
+0000000000512b00 T crc16_xmodem_short
+00000000005d7940 r crc16_xmodem_table

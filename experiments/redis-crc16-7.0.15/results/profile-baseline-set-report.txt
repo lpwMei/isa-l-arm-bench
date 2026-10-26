@@ -1,0 +1,42 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 4K of event 'cycles:u'
+# Event count (approx.): 20087964517
+#
+# Overhead  Shared Object     Symbol                     IPC   [IPC Coverage]
+# ........  ................  .........................  ....................
+#
+    18.84%  redis-server      [.] 0x00000000000b8930     -      -            
+     6.77%  redis-server      [.] 0x0000000000046064     -      -            
+     4.67%  redis-server      [.] 0x00000000000479cc     -      -            
+     4.17%  redis-server      [.] 0x0000000000046070     -      -            
+     3.02%  redis-server      [.] 0x00000000000b3d38     -      -            
+     2.93%  redis-server      [.] 0x000000000014a500     -      -            
+     2.92%  redis-server      [.] 0x000000000014a50c     -      -            
+     2.84%  redis-server      [.] 0x0000000000054c48     -      -            
+     2.76%  [vdso]            [.] 0x00000000000002d4     -      -            
+     2.05%  redis-server      [.] 0x00000000000abe0c     -      -            
+     2.05%  libc.so.6         [.] __xpg_strerror_r       -      -            
+     1.97%  [vdso]            [.] 0x00000000000002f0     -      -            
+     1.87%  redis-server      [.] 0x00000000000f09e8     -      -            
+     1.35%  redis-server      [.] 0x0000000000146574     -      -            
+     1.35%  libc.so.6         [.] __strcasestr           -      -            
+     1.33%  redis-server      [.] 0x000000000014a4e8     -      -            
+     1.17%  [vdso]            [.] 0x0000000000000300     -      -            
+     1.01%  redis-server      [.] 0x00000000000abe14     -      -            
+     1.01%  redis-server      [.] 0x00000000001436d0     -      -            
+     0.98%  libc.so.6         [.] memmove                -      -            
+     0.93%  redis-server      [.] 0x000000000004601c     -      -            
+     0.91%  redis-server      [.] 0x0000000000143710     -      -            
+     0.78%  libc.so.6         [.] 0x000000000009af78     -      -            
+     0.74%  redis-server      [.] 0x0000000000143694     -      -            
+     0.54%  redis-server      [.] 0x0000000000046024     -      -            
+     0.52%  redis-server      [.] 0x00000000000b3d48     -      -            
+
+
+#
+# (Tip: To add Node.js USDT(User-Level Statically Defined Tracing): perf buildid-cache --add `which node`)
+#

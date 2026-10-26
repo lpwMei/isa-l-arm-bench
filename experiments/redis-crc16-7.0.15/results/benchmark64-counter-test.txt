@@ -1,0 +1,1 @@
+PASS -n 10000000000 parser; issued crosses INT32_MAX; finished crosses UINT32_MAX; previous counter is 64-bit

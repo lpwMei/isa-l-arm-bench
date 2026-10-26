@@ -1,0 +1,394 @@
+/////////////////////////////////////////////////////////////////////////
+// XMODEM CRC16 PMULL-accelerated implementation for AARCH64
+// Polynomial: 0x1021 (CRC-16/XMODEM, CRC-16-CCITT)
+//
+// Algorithm: 4-way parallel CLMUL folding using NEON PMULL/PMULL2.
+// Adapted from ISA-L's crc16_t10dif_pmull.S (Arm Corporation).
+//
+// uint16_t crc16_xmodem_pmull(uint16_t seed, const uint8_t *buf, uint64_t len);
+/////////////////////////////////////////////////////////////////////////
+
+	.arch armv8-a+crc+crypto
+	.text
+	.align	3
+	.global	crc16_xmodem_pmull
+#ifndef __APPLE__
+	.type	crc16_xmodem_pmull, %function
+#endif
+
+/* ================================================================= */
+/* Register Aliases (defined before any use)                         */
+/* ================================================================= */
+
+/* arguments */
+w_seed		.req	w0
+x_buf		.req	x1
+x_len		.req	x2
+w_len		.req	w2
+
+/* returns */
+w_ret		.req	w0
+
+/* shared temporaries */
+w_tmp		.req	w5
+x_tmp		.req	x5
+x_tmp1		.req	x6
+x_tmp2		.req	x7
+
+d_tmp1		.req	d0
+d_tmp2		.req	d1
+q_tmp1		.req	q0
+q_tmp2		.req	q1
+v_tmp1		.req	v0
+v_tmp2		.req	v1
+
+/* scalar path locals */
+w_counter	.req	w3
+w_crc		.req	w0
+x_crc		.req	x0
+x_counter	.req	x3
+x_crc16tab	.req	x4
+x_buf_saved	.req	x0
+
+/* PMULL path - accumulators */
+q_x0		.req	q2
+q_x1		.req	q3
+q_x2		.req	q4
+q_x3		.req	q5
+v_x0		.req	v2
+v_x1		.req	v3
+v_x2		.req	v4
+v_x3		.req	v5
+d_x0		.req	d2
+d_x1		.req	d3
+d_x2		.req	d4
+d_x3		.req	d5
+
+q_permutation	.req	q7
+v_permutation	.req	v7
+
+/* PMULL path - temporaries for init */
+d_tmp3		.req	d16
+v_tmp3		.req	v16
+
+/* PMULL path - new data */
+q_y0		.req	q28
+q_y1		.req	q29
+q_y2		.req	q30
+q_y3		.req	q31
+v_y0		.req	v28
+v_y1		.req	v29
+v_y2		.req	v30
+v_y3		.req	v31
+
+/* PMULL path - fold intermediates */
+v_x0_h		.req	v24
+v_x0_l		.req	v2
+v_x1_h		.req	v25
+v_x1_l		.req	v3
+v_x2_h		.req	v26
+v_x2_l		.req	v4
+v_x3_h		.req	v27
+v_x3_l		.req	v5
+v_tmp1_x0	.req	v24
+v_tmp1_x1	.req	v25
+v_tmp1_x2	.req	v26
+v_tmp1_x3	.req	v27
+
+q_fold_const	.req	q17
+v_fold_const	.req	v17
+
+/* ================================================================= */
+/* Entry point                                                       */
+/* ================================================================= */
+crc16_xmodem_pmull:
+	cmp	x_len, 63
+	uxth	w_seed, w_seed
+	bhi	.crc_fold
+
+	mov	x_tmp, 0
+	mov	w_counter, 0
+
+/* ================================================================= */
+/* Scalar table-driven path for buffers < 64 bytes                   */
+/* ================================================================= */
+.crc_table_loop_pre:
+	cmp	x_len, x_tmp
+	bhi	1f
+	b	.end
+1:
+#ifndef __APPLE__
+	sxtw	x_counter, w_counter
+	adrp	x_crc16tab, .LANCHOR0
+	sub	x_buf, x_buf, x_counter
+	add	x_crc16tab, x_crc16tab, :lo12:.LANCHOR0
+#else
+	sxtw	x_counter, w_counter
+	adrp	x_crc16tab, .LANCHOR0@PAGE
+	sub	x_buf, x_buf, x_counter
+	add	x_crc16tab, x_crc16tab, .LANCHOR0@PAGEOFF
+#endif
+
+	.align 2
+.crc_table_loop:
+	ldrb	w_tmp, [x_buf, x_counter]
+	add	x_counter, x_counter, 1
+	cmp	x_len, x_counter
+	eor	w_tmp, w_tmp, w_crc, lsr 8
+	ldrh	w_tmp, [x_crc16tab, w_tmp, sxtw 1]
+	eor	w_crc, w_tmp, w_crc, lsl 8
+	uxth	w_crc, w_crc
+	bhi	.crc_table_loop
+
+.end:
+	ret
+
+/* ================================================================= */
+/* PMULL folding path: buffer >= 64 bytes                            */
+/* ================================================================= */
+	.align 3
+.crc_fold:
+	/* Scale 16-bit seed to 32-bit: seed << 16 in bits [47:32] */
+	fmov	d_tmp1, x_crc
+	fmov	d_tmp2, xzr
+	dup	d_tmp3, v_tmp2.d[0]
+	shl	d_tmp1, d_tmp1, 48
+	ins	v_tmp3.d[1], v_tmp1.d[0]
+
+	/* Round length down to 64-byte boundary */
+	and	x_counter, x_len, -64
+	sub	x_counter, x_counter, 64
+	cmp	x_counter, 63
+	add	x_buf_saved, x_buf, 64
+
+	/* Load first 64 bytes */
+	ld1	{v_x0.16b-v_x3.16b}, [x_buf]
+
+	/* Load byte-reverse shuffle mask */
+#ifndef __APPLE__
+	adrp	x_tmp, .shuffle_mask_lanchor
+	ldr	q7, [x_tmp, :lo12:.shuffle_mask_lanchor]
+#else
+	adrp	x_tmp, .shuffle_mask_lanchor@PAGE
+	ldr	q7, [x_tmp, .shuffle_mask_lanchor@PAGEOFF]
+#endif
+
+	/* Byte-reverse first batch and XOR in seed */
+	tbl	v_tmp1.16b, {v_x0.16b}, v7.16b
+	eor	v_x0.16b, v_tmp3.16b, v_tmp1.16b
+
+	tbl	v_x1.16b, {v_x1.16b}, v7.16b
+	tbl	v_x2.16b, {v_x2.16b}, v7.16b
+	tbl	v_x3.16b, {v_x3.16b}, v7.16b
+	bls	.crc_fold_loop_end
+
+/* ================================================================= */
+/* Main PMULL loop: 64 bytes per iteration                           */
+/* ================================================================= */
+	/* Load main loop fold constant: x^512 and x^576 mod P_scaled */
+	ldr	q_fold_const, fold_constant
+
+	.align 2
+.crc_fold_loop:
+	sub	x_counter, x_counter, 64
+
+	/* Load next 64B with LD1 from current position, then advance */
+	ld1	{v_y0.16b-v_y3.16b}, [x_buf_saved], #64
+	cmp	x_counter, 63
+
+	/* Prefetch */
+	prfm	pldl2strm, [x_buf_saved, 1024]
+
+	/* Fold acc0 with interleaved TBL to hide PMULL latency */
+	pmull2	v_tmp1_x0.1q, v_x0.2d, v_fold_const.2d
+	tbl	v_y0.16b, {v_y0.16b}, v_permutation.16b
+	pmull	v_x0.1q, v_x0.1d, v_fold_const.1d
+
+	/* Fold acc1 */
+	pmull2	v_tmp1_x1.1q, v_x1.2d, v_fold_const.2d
+	tbl	v_y1.16b, {v_y1.16b}, v_permutation.16b
+	pmull	v_x1.1q, v_x1.1d, v_fold_const.1d
+
+	/* Combine acc0 */
+	eor	v_x0.16b, v_tmp1_x0.16b, v_x0.16b
+
+	/* Fold acc2 */
+	pmull2	v_tmp1_x2.1q, v_x2.2d, v_fold_const.2d
+	tbl	v_y2.16b, {v_y2.16b}, v_permutation.16b
+	eor	v_x0.16b, v_x0.16b, v_y0.16b
+
+	pmull	v_x2.1q, v_x2.1d, v_fold_const.1d
+	eor	v_x1.16b, v_tmp1_x1.16b, v_x1.16b
+
+	/* Fold acc3 */
+	pmull2	v_tmp1_x3.1q, v_x3.2d, v_fold_const.2d
+	tbl	v_y3.16b, {v_y3.16b}, v_permutation.16b
+	eor	v_x1.16b, v_x1.16b, v_y1.16b
+
+	pmull	v_x3.1q, v_x3.1d, v_fold_const.1d
+	eor	v_x2.16b, v_tmp1_x2.16b, v_x2.16b
+	eor	v_x2.16b, v_x2.16b, v_y2.16b
+
+	eor	v_x3.16b, v_tmp1_x3.16b, v_x3.16b
+	eor	v_x3.16b, v_x3.16b, v_y3.16b
+
+	bhi	.crc_fold_loop
+
+/* ================================================================= */
+/* Post-loop: 512-bit to 128-bit fold using P1 constants             */
+/* ================================================================= */
+.crc_fold_loop_end:
+	/* Load P1 constants */
+	mov	x_tmp1, 0x45630000		/* P1_lo = x^128 mod P_scaled */
+	fmov	d1, x_tmp1
+	mov	x_tmp1, 0xD5F60000		/* P1_hi = x^192 mod P_scaled */
+	fmov	d0, x_tmp1
+
+	/* Adjust buf pointer past full 64-byte blocks */
+	and	w_counter, w_len, -64
+	sxtw	x_tmp, w_counter
+	add	x_buf, x_buf, x_tmp
+
+	/* Fold x0 into x1 */
+	dup	d6, v_x0.d[1]
+	dup	d30, v_x0.d[0]
+	pmull	v6.1q, v6.1d, v0.1d
+	pmull	v30.1q, v30.1d, v1.1d
+	eor	v6.16b, v6.16b, v30.16b
+	eor	v_x1.16b, v6.16b, v_x1.16b
+
+	/* Fold x1 into x2 */
+	dup	d6, v_x1.d[1]
+	dup	d30, v_x1.d[0]
+	pmull	v6.1q, v6.1d, v0.1d
+	pmull	v16.1q, v30.1d, v1.1d
+	eor	v6.16b, v6.16b, v16.16b
+	eor	v_x2.16b, v6.16b, v_x2.16b
+
+	/* Fold x2 into x3 (final 128-bit state) */
+	dup	d_x0, v_x2.d[1]
+	dup	d30, v_x2.d[0]
+	pmull	v0.1q, v_x0.1d, v0.1d
+	pmull	v_x0.1q, v30.1d, v1.1d
+	eor	v1.16b, v0.16b, v_x0.16b
+	eor	v_x0.16b, v1.16b, v_x3.16b
+
+/* ================================================================= */
+/* CRC16-specific 128-bit to 32-bit fold using P0 constants          */
+/* ================================================================= */
+	movi	v7.4s, 0			/* zero register for ext */
+
+	mov	x_tmp1, 0xEB230000		/* P0_hi = (x^80 mod P_17) << 16 */
+	fmov	d18, x_tmp1
+	mov	x_tmp2, 0xAA510000		/* P0_lo = (x^48 mod P_17) << 16 */
+	fmov	d4, x_tmp2
+
+	/* First reduction step */
+	ext	v0.16b, v7.16b, v_x0.16b, 8
+	ext	v0.16b, v0.16b, v7.16b, 4
+
+	dup	d3, v_x0.d[1]
+	pmull	v16.1q, v3.1d, v18.1d
+	eor	v0.16b, v0.16b, v16.16b
+
+	/* Second reduction step */
+	dup	d6, v0.d[1]
+	pmull	v6.1q, v6.1d, v4.1d
+	eor	v_x0.16b, v0.16b, v6.16b
+
+/* ================================================================= */
+/* Barrett reduction: 32-bit to 16-bit CRC                           */
+/* ================================================================= */
+	/* Load Barrett mu constant: floor(x^48 / P_17) */
+	mov	x_tmp1, 0x3471			/* mu[15:0]  */
+	movk	x_tmp1, 0x1130, lsl 16		/* mu[31:16] */
+	movk	x_tmp1, 0x1, lsl 32		/* mu[32]    */
+	fmov	d3, x_tmp1
+
+	/* Step 1: multiply low 64 bits by mu, extract high 32 bits */
+	dup	d1, v_x0.d[0]
+	dup	d1, v1.d[0]
+	ext	v1.16b, v1.16b, v7.16b, 4
+	pmull	v4.1q, v1.1d, v3.1d
+
+	/* Step 2: multiply by P_scaled, XOR with state */
+	ext	v1.16b, v4.16b, v7.16b, 4
+	mov	x_tmp1, 0x10210000		/* P_scaled[31:0]  */
+	movk	x_tmp1, 0x1, lsl 32		/* P_scaled[32]    */
+	fmov	d5, x_tmp1
+	pmull	v5.1q, v1.1d, v5.1d
+	eor	v_x0.16b, v_x0.16b, v5.16b
+
+	/* Extract 16-bit CRC from bits [47:32] */
+	umov	x0, v_x0.d[0]
+	ubfx	x0, x0, 16, 16
+	b	.crc_table_loop_pre
+
+#ifndef __APPLE__
+	.size	crc16_xmodem_pmull, .-crc16_xmodem_pmull
+#endif
+
+/* ================================================================= */
+/* Constants                                                         */
+/* ================================================================= */
+	.align	4
+fold_constant:
+	/* Main loop fold: x^512 and x^576 mod P_scaled (XMODEM poly=0x1021) */
+	.word	0x59B00000
+	.word	0x00000000
+	.word	0x60190000
+	.word	0x00000000
+
+	.align	4
+#ifndef __APPLE__
+	.type	shuffle_mask_xm, %object
+	.size	shuffle_mask_xm, 16
+#endif
+shuffle_mask_xm:
+	.byte	15, 14, 13, 12, 11, 10, 9, 8
+	.byte	7,   6,  5,  4,  3,  2, 1, 0
+	.align	4
+.shuffle_mask_lanchor = shuffle_mask_xm
+
+/* ================================================================= */
+/* XMODEM CRC16 Lookup Table (poly=0x1021, MSB-first)                */
+/* ================================================================= */
+	.align	4
+.LANCHOR0 = . + 0
+#ifndef __APPLE__
+	.type	crc16tab_xmodem, %object
+	.size	crc16tab_xmodem, 512
+#endif
+crc16tab_xmodem:
+	.hword	0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7
+	.hword	0x8108, 0x9129, 0xA14A, 0xB16B, 0xC18C, 0xD1AD, 0xE1CE, 0xF1EF
+	.hword	0x1231, 0x0210, 0x3273, 0x2252, 0x52B5, 0x4294, 0x72F7, 0x62D6
+	.hword	0x9339, 0x8318, 0xB37B, 0xA35A, 0xD3BD, 0xC39C, 0xF3FF, 0xE3DE
+	.hword	0x2462, 0x3443, 0x0420, 0x1401, 0x64E6, 0x74C7, 0x44A4, 0x5485
+	.hword	0xA56A, 0xB54B, 0x8528, 0x9509, 0xE5EE, 0xF5CF, 0xC5AC, 0xD58D
+	.hword	0x3653, 0x2672, 0x1611, 0x0630, 0x76D7, 0x66F6, 0x5695, 0x46B4
+	.hword	0xB75B, 0xA77A, 0x9719, 0x8738, 0xF7DF, 0xE7FE, 0xD79D, 0xC7BC
+	.hword	0x48C4, 0x58E5, 0x6886, 0x78A7, 0x0840, 0x1861, 0x2802, 0x3823
+	.hword	0xC9CC, 0xD9ED, 0xE98E, 0xF9AF, 0x8948, 0x9969, 0xA90A, 0xB92B
+	.hword	0x5AF5, 0x4AD4, 0x7AB7, 0x6A96, 0x1A71, 0x0A50, 0x3A33, 0x2A12
+	.hword	0xDBFD, 0xCBDC, 0xFBBF, 0xEB9E, 0x9B79, 0x8B58, 0xBB3B, 0xAB1A
+	.hword	0x6CA6, 0x7C87, 0x4CE4, 0x5CC5, 0x2C22, 0x3C03, 0x0C60, 0x1C41
+	.hword	0xEDAE, 0xFD8F, 0xCDEC, 0xDDCD, 0xAD2A, 0xBD0B, 0x8D68, 0x9D49
+	.hword	0x7E97, 0x6EB6, 0x5ED5, 0x4EF4, 0x3E13, 0x2E32, 0x1E51, 0x0E70
+	.hword	0xFF9F, 0xEFBE, 0xDFDD, 0xCFFC, 0xBF1B, 0xAF3A, 0x9F59, 0x8F78
+	.hword	0x9188, 0x81A9, 0xB1CA, 0xA1EB, 0xD10C, 0xC12D, 0xF14E, 0xE16F
+	.hword	0x1080, 0x00A1, 0x30C2, 0x20E3, 0x5004, 0x4025, 0x7046, 0x6067
+	.hword	0x83B9, 0x9398, 0xA3FB, 0xB3DA, 0xC33D, 0xD31C, 0xE37F, 0xF35E
+	.hword	0x02B1, 0x1290, 0x22F3, 0x32D2, 0x4235, 0x5214, 0x6277, 0x7256
+	.hword	0xB5EA, 0xA5CB, 0x95A8, 0x8589, 0xF56E, 0xE54F, 0xD52C, 0xC50D
+	.hword	0x34E2, 0x24C3, 0x14A0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405
+	.hword	0xA7DB, 0xB7FA, 0x8799, 0x97B8, 0xE75F, 0xF77E, 0xC71D, 0xD73C
+	.hword	0x26D3, 0x36F2, 0x0691, 0x16B0, 0x6657, 0x7676, 0x4615, 0x5634
+	.hword	0xD94C, 0xC96D, 0xF90E, 0xE92F, 0x99C8, 0x89E9, 0xB98A, 0xA9AB
+	.hword	0x5844, 0x4865, 0x7806, 0x6827, 0x18C0, 0x08E1, 0x3882, 0x28A3
+	.hword	0xCB7D, 0xDB5C, 0xEB3F, 0xFB1E, 0x8BF9, 0x9BD8, 0xABBB, 0xBB9A
+	.hword	0x4A75, 0x5A54, 0x6A37, 0x7A16, 0x0AF1, 0x1AD0, 0x2AB3, 0x3A92
+	.hword	0xFD2E, 0xED0F, 0xDD6C, 0xCD4D, 0xBDAA, 0xAD8B, 0x9DE8, 0x8DC9
+	.hword	0x7C26, 0x6C07, 0x5C64, 0x4C45, 0x3CA2, 0x2C83, 0x1CE0, 0x0CC1
+	.hword	0xEF1F, 0xFF3E, 0xCF5D, 0xDF7C, 0xAF9B, 0xBFBA, 0x8FD9, 0x9FF8
+	.hword	0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0

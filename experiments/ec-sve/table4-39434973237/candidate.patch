@@ -1,0 +1,36 @@
+--- a/erasure_code/aarch64/gf_nvect_dot_prod_sve.c
++++ b/erasure_code/aarch64/gf_nvect_dot_prod_sve.c
+@@ -81,13 +81,13 @@
+                 return;
+ 
+         const svuint8_t mask0f = svdup_u8(0x0f);
+-        const svbool_t predicate_true = svptrue_b8();
++        const svbool_t predicate_true = svptrue_pat_b8(SV_VL16);
+         int sve_len = svcntb();
+         int pos = 0;
+ 
+         // 4x unrolled main loop - SVE predicates handle ALL remaining data automatically
+         int is_all_one[7] = { 0 };
+-        for (int d = 0; d < nvect && d < 7; d++) {
++        for (int d = 0; nvect <= 2 && d < nvect; d++) {
+                 is_all_one[d] = is_dest_coeff_all_one(gftbls, vlen, d);
+         }
+ 
+@@ -150,7 +150,7 @@
+                         svuint8_t src_lo2 = svdup_u8(0), src_hi2 = svdup_u8(0);
+                         svuint8_t src_lo3 = svdup_u8(0), src_hi3 = svdup_u8(0);
+                         for (int d = 0; d < nvect; d++) {
+-                                if (!is_all_one[d]) {
++                                if (nvect > 2 || !is_all_one[d]) {
+                                         src_lo0 = svand_x(predicate_0, src_data0, mask0f);
+                                         src_hi0 = svlsr_x(predicate_0, src_data0, 4);
+                                         src_lo1 = svand_x(predicate_1, src_data1, mask0f);
+@@ -167,7 +167,7 @@
+                         for (int d = 0; d < nvect; d++) {
+                                 svuint8_t gf_result0, gf_result1, gf_result2, gf_result3;
+ 
+-                                if (is_all_one[d]) {
++                                if (nvect <= 2 && is_all_one[d]) {
+                                         gf_result0 = src_data0;
+                                         gf_result1 = src_data1;
+                                         gf_result2 = src_data2;

@@ -1,0 +1,17 @@
+2026-10-26T09:29:10,362683964+00:00
+uid=1007 gid=1007 groups=1007
+Traceback (most recent call last):
+  File "/work/artifacts/run_e2e.py", line 240, in <module>
+    main()
+  File "/work/artifacts/run_e2e.py", line 206, in main
+    process, r = start(variant, path)
+                 ^^^^^^^^^^^^^^^^^^^^
+  File "/work/artifacts/run_e2e.py", line 132, in start
+    raise RuntimeError((path / "server.log").read_text())
+RuntimeError: 59:C 26 Oct 2026 09:29:11.277 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+59:C 26 Oct 2026 09:29:11.277 # Redis version=7.0.15, bits=64, commit=00000000, modified=0, pid=59, just started
+59:C 26 Oct 2026 09:29:11.277 # Configuration loaded
+59:M 26 Oct 2026 09:29:11.278 * monotonic clock: POSIX clock_gettime
+59:M 26 Oct 2026 09:29:11.278 # Warning: Could not create server TCP listening socket 127.0.0.1:16380: bind: Address already in use
+59:M 26 Oct 2026 09:29:11.278 # Failed listening on port 16380 (TCP), aborting.
+

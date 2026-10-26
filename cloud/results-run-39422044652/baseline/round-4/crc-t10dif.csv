@@ -1,0 +1,9 @@
+Running benchmark with specified buffer sizes: 16,64,256,1024,4096,65536,1048576
+crc_type,buffer_size,throughput
+crc16_t10dif,16,1007.56
+crc16_t10dif,64,6043.51
+crc16_t10dif,256,11528.79
+crc16_t10dif,1024,15833.60
+crc16_t10dif,4096,17472.23
+crc16_t10dif,65536,18048.80
+crc16_t10dif,1048576,17093.51

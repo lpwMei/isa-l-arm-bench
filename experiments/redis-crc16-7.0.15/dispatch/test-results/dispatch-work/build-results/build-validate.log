@@ -1,0 +1,59 @@
+2026-10-26T20:49:46,068099308+08:00
+uid=1007 gid=1007 groups=1007
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
+ID="openEuler"
+VERSION_ID="24.03"
+PRETTY_NAME="openEuler 24.03 (LTS-SP3)"
+ANSI_COLOR="0;31"
+
+gcc (GCC) 12.3.1 (openEuler 12.3.1-105.oe2403sp3)
+PASS imported file hashes match selected manifest
+Redis server v=7.0.15 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=5a86073e48cbb9a3
+PASS 362327 differential cases; known vector; negative length; binary data; 64 alignments; two guard pages
+PASS 362327 differential cases; known vector; negative length; binary data; 64 alignments; two guard pages
+PASS 362327 differential cases; known vector; negative length; binary data; 64 alignments; two guard pages
+PASS all 129 nonnegative lengths pass through upstream dispatch; <16 scalar, 16..63 short, >=64 four-way; short_calls=48 pmull_calls=113
+length,expected,upstream_dispatch,pmull_direct,expected_slot,dispatch_slot
+0,0000,0000,0000,0,0
+1,7c87,7c87,7c87,15495,15495
+9,bc82,bc82,bc82,15490,15490
+15,f888,f888,f888,14472,14472
+16,9a90,9a90,9a90,6800,6800
+17,ce74,ce74,ce74,3700,3700
+31,1905,1905,1905,6405,6405
+32,fa9f,fa9f,fa9f,15007,15007
+33,add2,add2,add2,11730,11730
+47,3575,3575,3575,13685,13685
+48,6f71,6f71,6f71,12145,12145
+49,90ce,90ce,90ce,4302,4302
+63,1ba1,1ba1,1ba1,7073,7073
+64,7edd,7edd,7edd,16093,16093
+65,3ede,3ede,3ede,16094,16094
+cases=65792 failures=0
+Ready. Use: start_redis baseline; run_bench 10000; stop_redis
+Then: start_redis optimized; run_bench 10000; stop_redis
+OK
+cluster_state:ok
+cluster_slots_assigned:16384
+cluster_slots_ok:16384
+cluster_slots_pfail:0
+cluster_slots_fail:0
+cluster_known_nodes:1
+cluster_size:1
+cluster_current_epoch:0
+cluster_my_epoch:0
+cluster_stats_messages_sent:0
+cluster_stats_messages_received:0
+total_cluster_links_buffer_limit_exceeded:0
+pid 4795's current affinity list: 340
+pid 4800's current affinity list: 340
+pid 4801's current affinity list: 340
+pid 4802's current affinity list: 340
+pid 4803's current affinity list: 340
+Started optimized; logs: /manual/runs/optimized.Q2phrW
+PASS actual Redis CLUSTER KEYSLOT: 34 boundary/hash-tag cases
+Stopped optimized
+2026-10-26T20:50:58,606273617+08:00
+Ready. Use: start_redis baseline; run_bench 10000; stop_redis
+Then: start_redis optimized; run_bench 10000; stop_redis

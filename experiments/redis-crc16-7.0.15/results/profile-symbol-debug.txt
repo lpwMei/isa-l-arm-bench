@@ -1,0 +1,22 @@
+build id event received for [kernel.kallsyms]: c743a82cb63efb3e302739b722a152c6ac233fd1 [20]
+build id event received for /usr/lib64/libc.so.6: ee4be940856f4542012cb4e11fa737a1c6de4011 [20]
+build id event received for [vdso]: a7a6669332e49cf4162c004d289ff8794708e715 [20]
+[vdso] with build id a7a6669332e49cf4162c004d289ff8794708e715 not found, continuing without symbols
+Failed to open /work/baseline/src/redis-server, continuing without symbols
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 4K of event 'cycles:u'
+# Event count (approx.): 20087964517
+#
+# Overhead  Command       Shared Object                    Symbol                                   
+# ........  ............  ...............................  .........................................
+#
+    18.84%  redis-server  /work/baseline/src/redis-server  0xb8930            ! [.] 0x00000000000b8930
+
+
+#
+# (Tip: Treat branches as callchains: perf report --branch-history)
+#

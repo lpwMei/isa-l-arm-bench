@@ -1,0 +1,10 @@
+2026-10-26T17:38:49,828949594+08:00
+uid=1007 gid=1007 groups=1007
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
+ID="openEuler"
+VERSION_ID="24.03"
+PRETTY_NAME="openEuler 24.03 (LTS-SP3)"
+ANSI_COLOR="0;31"
+
+START endurance round=1 baseline SET n=10000000000

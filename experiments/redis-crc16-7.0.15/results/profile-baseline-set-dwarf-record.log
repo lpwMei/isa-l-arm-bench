@@ -1,0 +1,2 @@
+[ perf record: Woken up 195 times to write data ]
+[ perf record: Captured and wrote 48.663 MB results/profile-baseline-set-dwarf.data (5957 samples) ]

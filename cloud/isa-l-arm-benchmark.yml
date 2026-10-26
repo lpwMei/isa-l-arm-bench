@@ -1,0 +1,156 @@
+name: ISA-L native ARM baseline
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/isa-l-arm-benchmark]
+    paths: [.github/workflows/isa-l-arm-benchmark.yml]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: isa-l-arm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  benchmark:
+    # Public standard runners are free. Do not run this draft on paid private runners.
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    env:
+      BASELINE_SHA: 7c3479e0a9dac17f448603ec1ad64c7c625f530c
+      UPSTREAM_SHA: 8fa1e72fee7338fcfbf829b00f2f407631bd2dba
+      REPEATS: '5'
+    steps:
+      - name: Install native build dependencies
+        run: |
+          set -euo pipefail
+          test "$(uname -m)" = aarch64
+          export BENCH_ROOT="$RUNNER_TEMP/isa-l-arm-experiment"
+          printf 'BENCH_ROOT=%s\n' "$BENCH_ROOT" >> "$GITHUB_ENV"
+          mkdir -p "$BENCH_ROOT/results" "$BENCH_ROOT/corpus"
+          sudo apt-get update
+          sudo apt-get install -y build-essential autoconf automake libtool zlib1g-dev numactl python3
+
+      - name: Record CPU and build environment
+        run: |
+          set -euo pipefail
+          {
+            date -u
+            uname -a
+            lscpu
+            numactl --hardware
+            gcc --version
+            as --version
+            ldd --version
+            cat /proc/cpuinfo
+            if test -r /proc/sys/abi/sve_default_vector_length; then
+              cat /proc/sys/abi/sve_default_vector_length
+            fi
+          } > "$BENCH_ROOT/results/environment.txt" 2>&1
+          CPU=$(python3 -c 'import os; print(min(os.sched_getaffinity(0)))')
+          printf 'BENCH_CPU=%s\n' "$CPU" >> "$GITHUB_ENV"
+          printf 'cpu=%s\nbaseline=%s\nupstream=%s\nrepeats=%s\n' \
+            "$CPU" "$BASELINE_SHA" "$UPSTREAM_SHA" "$REPEATS" \
+            > "$BENCH_ROOT/results/manifest.txt"
+          cat "$BENCH_ROOT/results/manifest.txt"
+
+      - name: Fetch and build both pinned upstream versions
+        run: |
+          set -euo pipefail
+          for VERSION in baseline upstream; do
+            if test "$VERSION" = baseline; then SHA="$BASELINE_SHA"; else SHA="$UPSTREAM_SHA"; fi
+            SOURCE="$BENCH_ROOT/$VERSION"
+            git init "$SOURCE"
+            git -C "$SOURCE" remote add origin https://github.com/intel/isa-l.git
+            git -C "$SOURCE" fetch --depth 1 origin "$SHA"
+            git -C "$SOURCE" checkout --detach FETCH_HEAD
+            test "$(git -C "$SOURCE" rev-parse HEAD)" = "$SHA"
+            (
+              cd "$SOURCE"
+              ./autogen.sh
+              ./configure CFLAGS='-O3 -g'
+              make -j"$(nproc)"
+              make -j"$(nproc)" perfs
+              make igzip/igzip_perf
+            ) > "$BENCH_ROOT/results/build-$VERSION.log" 2>&1
+            cp "$SOURCE/config.log" "$BENCH_ROOT/results/config-$VERSION.log"
+            taskset -c "$BENCH_CPU" make -C "$SOURCE" check \
+              > "$BENCH_ROOT/results/check-$VERSION.log" 2>&1
+          done
+
+      - name: Generate fixed original-content corpora
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import random
+          from pathlib import Path
+          root = Path(os.environ['BENCH_ROOT'])
+          rng = random.Random(20261020)
+          files = {
+              'json-lines.bin': b''.join(
+                  (json.dumps({'id': i, 'kind': i % 23, 'payload': 'ISA-L ARM benchmark ' * (i % 8 + 1)}, sort_keys=True) + '\n').encode()
+                  for i in range(24000)
+              ),
+              'binary.bin': rng.randbytes(2 * 1024 * 1024),
+              'repeated.bin': (b'123456789abcdef' * 1024 + b'\0' * 4096) * 128,
+          }
+          with (root / 'results' / 'corpus-sha256.txt').open('w') as manifest:
+              for name, data in files.items():
+                  (root / 'corpus' / name).write_bytes(data)
+                  manifest.write(f'{hashlib.sha256(data).hexdigest()}  {name}  {len(data)} bytes\n')
+          PY
+
+      - name: Alternate baseline and upstream official benchmarks on one CPU
+        run: |
+          set -euo pipefail
+          for ROUND in $(seq 1 "$REPEATS"); do
+            if (( ROUND % 2 )); then ORDER='baseline upstream'; else ORDER='upstream baseline'; fi
+            for VERSION in $ORDER; do
+              SOURCE="$BENCH_ROOT/$VERSION"
+              OUT="$BENCH_ROOT/results/$VERSION/round-$ROUND"
+              mkdir -p "$OUT"
+              for CRC in iscsi gzip t10dif; do
+                taskset -c "$BENCH_CPU" "$SOURCE/crc/crc_funcs_perf" \
+                  -t "$CRC" -s 16,64,256,1024,4096,65536,1048576 -c \
+                  > "$OUT/crc-$CRC.csv" 2>&1
+              done
+              for PARITY in 2 4 6 7; do
+                taskset -c "$BENCH_CPU" "$SOURCE/erasure_code/erasure_code_perf" \
+                  -k 10 -p "$PARITY" -e 1 -s 64K \
+                  > "$OUT/ec-k10-p$PARITY.log" 2>&1
+              done
+              for CORPUS in json-lines binary repeated; do
+                taskset -c "$BENCH_CPU" "$SOURCE/igzip/igzip_perf" \
+                  -l 1 -d 0 -i 3 -t -s -b 4096 "$BENCH_ROOT/corpus/$CORPUS.bin" \
+                  > "$OUT/inflate-$CORPUS.log" 2>&1
+                if grep -qi 'Error in .*inflate' "$OUT/inflate-$CORPUS.log"; then
+                  cat "$OUT/inflate-$CORPUS.log"
+                  exit 1
+                fi
+              done
+            done
+          done
+          {
+            printf 'Native architecture: %s\n' "$(uname -m)"
+            printf 'The uploaded logs contain five alternating A/B rounds on CPU %s.\n' "$BENCH_CPU"
+            printf 'baseline: ISA-L v2.32.1 at %s\n' "$BASELINE_SHA"
+            printf 'upstream: pinned master at %s\n' "$UPSTREAM_SHA"
+            printf 'Only public upstream code was tested; no new optimization patch is included.\n'
+            printf 'igzip_perf measures raw DEFLATE, not complete ZIP extraction.\n'
+            printf 'Cloud CPU results do not establish a Kunpeng 950 performance gain.\n'
+          } | tee "$BENCH_ROOT/results/README.txt"
+
+      - name: Upload raw benchmark and correctness logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: isa-l-arm-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/isa-l-arm-experiment/results
+          retention-days: 7
+          if-no-files-found: warn

@@ -1,0 +1,17 @@
+2026-10-26T09:25:06,142159014+00:00
+uid=1007 gid=1007 groups=1007
+NAME="openEuler"
+VERSION="24.03 (LTS-SP3)"
+ID="openEuler"
+VERSION_ID="24.03"
+PRETTY_NAME="openEuler 24.03 (LTS-SP3)"
+ANSI_COLOR="0;31"
+
+gcc (GCC) 12.3.1 (openEuler 12.3.1-105.oe2403sp3)
+pid 11's current affinity list: 320,322,324,326,328,330,332,334
+Redis server v=7.0.15 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=88fb6b664e751493
+Redis server v=7.0.15 sha=00000000:0 malloc=jemalloc-5.2.1 bits=64 build=f1785851d28283f0
+PASS 362327 differential cases; known vector; negative length; binary data; 64 alignments; two guard pages
+PASS 362327 differential cases; known vector; negative length; binary data; 64 alignments; two guard pages
+PASS 362327 differential cases; known vector; negative length; binary data; 64 alignments; two guard pages
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x10

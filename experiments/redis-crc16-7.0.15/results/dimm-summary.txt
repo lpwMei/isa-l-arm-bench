@@ -1,0 +1,192 @@
+	Size: 32 GB
+	Locator: DIMM000
+	Bank Locator: SOCKET 0 CHANNEL 0 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM010
+	Bank Locator: SOCKET 0 CHANNEL 1 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM020
+	Bank Locator: SOCKET 0 CHANNEL 2 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM030
+	Bank Locator: SOCKET 0 CHANNEL 3 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM040
+	Bank Locator: SOCKET 0 CHANNEL 4 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM050
+	Bank Locator: SOCKET 0 CHANNEL 5 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM060
+	Bank Locator: SOCKET 0 CHANNEL 6 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM070
+	Bank Locator: SOCKET 0 CHANNEL 7 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM080
+	Bank Locator: SOCKET 0 CHANNEL 8 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM090
+	Bank Locator: SOCKET 0 CHANNEL 9 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM0A0
+	Bank Locator: SOCKET 0 CHANNEL A DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM0B0
+	Bank Locator: SOCKET 0 CHANNEL B DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM100
+	Bank Locator: SOCKET 1 CHANNEL 0 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM110
+	Bank Locator: SOCKET 1 CHANNEL 1 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM120
+	Bank Locator: SOCKET 1 CHANNEL 2 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM130
+	Bank Locator: SOCKET 1 CHANNEL 3 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM140
+	Bank Locator: SOCKET 1 CHANNEL 4 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM150
+	Bank Locator: SOCKET 1 CHANNEL 5 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM160
+	Bank Locator: SOCKET 1 CHANNEL 6 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM170
+	Bank Locator: SOCKET 1 CHANNEL 7 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM180
+	Bank Locator: SOCKET 1 CHANNEL 8 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM190
+	Bank Locator: SOCKET 1 CHANNEL 9 DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM1A0
+	Bank Locator: SOCKET 1 CHANNEL A DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None
+	Size: 32 GB
+	Locator: DIMM1B0
+	Bank Locator: SOCKET 1 CHANNEL B DIMM 0
+	Configured Memory Speed: 5600 MT/s
+	Non-Volatile Size: None
+	Volatile Size: 32 kB
+	Cache Size: None
+	Logical Size: None

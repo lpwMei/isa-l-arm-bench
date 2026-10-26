@@ -1,0 +1,320 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 5K of event 'cycles:u'
+# Event count (approx.): 59575835441
+#
+# Overhead  Shared Object     Symbol                                     IPC   [IPC Coverage]
+# ........  ................  .........................................  ....................
+#
+    18.74%  redis-server      [.] crc16                                  -      -            
+            |
+            ---crc16
+               keyHashSlot
+               getNodeByQuery
+               processCommand
+               processCommandAndResetClient (inlined)
+               processInputBuffer
+               readQueryFromClient
+               callHandler (inlined)
+               connSocketEventHandler
+               aeProcessEvents (inlined)
+               aeProcessEvents (inlined)
+               aeMain
+               main
+               0xffffb5d676c3
+               0xffffb5d677a7
+               _start
+
+    14.01%  redis-server      [.] dictFind                               -      -            
+            |
+            ---dictFind
+               |          
+               |--8.67%--lookupKey
+               |          setGenericCommand
+               |          call
+               |          processCommand
+               |          processCommandAndResetClient (inlined)
+               |          processInputBuffer
+               |          readQueryFromClient
+               |          callHandler (inlined)
+               |          connSocketEventHandler
+               |          aeProcessEvents (inlined)
+               |          aeProcessEvents (inlined)
+               |          aeMain
+               |          main
+               |          0xffffb5d676c3
+               |          0xffffb5d677a7
+               |          _start
+               |          
+               |--1.86%--removeExpire
+               |          setKey
+               |          setGenericCommand
+               |          call
+               |          processCommand
+               |          processCommandAndResetClient (inlined)
+               |          processInputBuffer
+               |          readQueryFromClient
+               |          callHandler (inlined)
+               |          connSocketEventHandler
+               |          aeProcessEvents (inlined)
+               |          aeProcessEvents (inlined)
+               |          aeMain
+               |          main
+               |          0xffffb5d676c3
+               |          0xffffb5d677a7
+               |          _start
+               |          
+               |--1.77%--dictFetchValue
+               |          lookupCommandLogic
+               |          lookupCommand (inlined)
+               |          processCommand
+               |          processCommandAndResetClient (inlined)
+               |          processInputBuffer
+               |          readQueryFromClient
+               |          callHandler (inlined)
+               |          connSocketEventHandler
+               |          aeProcessEvents (inlined)
+               |          aeProcessEvents (inlined)
+               |          aeMain
+               |          main
+               |          0xffffb5d676c3
+               |          0xffffb5d677a7
+               |          _start
+               |          
+                --1.71%--dbOverwrite
+                          setKey
+                          setGenericCommand
+                          call
+                          processCommand
+                          processCommandAndResetClient (inlined)
+                          processInputBuffer
+                          readQueryFromClient
+                          callHandler (inlined)
+                          connSocketEventHandler
+                          aeProcessEvents (inlined)
+                          aeProcessEvents (inlined)
+                          aeMain
+                          main
+                          0xffffb5d676c3
+                          0xffffb5d677a7
+                          _start
+
+     8.85%  redis-server      [.] je_malloc_usable_size                  -      -            
+            |          
+            |--3.22%--sz_index2size_lookup (inlined)
+            |          sz_index2size (inlined)
+            |          arena_salloc (inlined)
+            |          isalloc (inlined)
+            |          je_malloc_usable_size
+            |          |          
+            |          |--1.96%--ztrymalloc_usable_internal (inlined)
+            |          |          |          
+            |          |           --1.19%--zmalloc
+            |          |          
+            |           --1.26%--zfree
+            |                     zfree
+            |          
+            |--2.78%--je_malloc_usable_size
+            |          |          
+            |           --1.79%--ztrymalloc_usable_internal (inlined)
+            |                     |          
+            |                      --1.16%--zmalloc
+            |          
+             --1.69%--rtree_leaf_elm_lookup (inlined)
+                       rtree_read (inlined)
+                       rtree_szind_read (inlined)
+                       arena_salloc (inlined)
+                       isalloc (inlined)
+                       je_malloc_usable_size
+                       |          
+                        --1.02%--ztrymalloc_usable_internal (inlined)
+
+     5.79%  redis-server      [.] dictSdsKeyCompare                      -      -            
+            |          
+             --5.50%--dictSdsKeyCompare
+                       dictFind
+                       |          
+                        --4.70%--lookupKey
+                                  setGenericCommand
+                                  call
+                                  processCommand
+                                  processCommandAndResetClient (inlined)
+                                  processInputBuffer
+                                  readQueryFromClient
+                                  callHandler (inlined)
+                                  connSocketEventHandler
+                                  aeProcessEvents (inlined)
+                                  aeProcessEvents (inlined)
+                                  aeMain
+                                  main
+                                  0xffffb5d676c3
+                                  0xffffb5d677a7
+                                  _start
+
+     5.24%  redis-server      [.] getNodeByQuery                         -      -            
+            |          
+             --4.65%--getNodeByQuery
+                       processCommand
+                       processCommandAndResetClient (inlined)
+                       processInputBuffer
+                       readQueryFromClient
+                       callHandler (inlined)
+                       connSocketEventHandler
+                       aeProcessEvents (inlined)
+                       aeProcessEvents (inlined)
+                       aeMain
+                       main
+                       0xffffb5d676c3
+                       0xffffb5d677a7
+                       _start
+
+     3.75%  redis-server      [.] je_malloc                              -      -            
+            |          
+            |--1.46%--cache_bin_alloc_easy (inlined)
+            |          je_malloc
+            |          ztrymalloc_usable_internal (inlined)
+            |          
+             --1.27%--je_malloc
+                       ztrymalloc_usable_internal (inlined)
+
+     3.62%  redis-server      [.] siphash                                -      -            
+            |
+            ---siphash
+               dictFind
+               |          
+               |--1.72%--removeExpire
+               |          setKey
+               |          setGenericCommand
+               |          call
+               |          processCommand
+               |          processCommandAndResetClient (inlined)
+               |          processInputBuffer
+               |          readQueryFromClient
+               |          callHandler (inlined)
+               |          connSocketEventHandler
+               |          aeProcessEvents (inlined)
+               |          aeProcessEvents (inlined)
+               |          aeMain
+               |          main
+               |          0xffffb5d676c3
+               |          0xffffb5d677a7
+               |          _start
+               |          
+                --1.44%--lookupKey
+                          setGenericCommand
+                          call
+                          processCommand
+                          processCommandAndResetClient (inlined)
+                          processInputBuffer
+                          readQueryFromClient
+                          callHandler (inlined)
+                          connSocketEventHandler
+                          aeProcessEvents (inlined)
+                          aeProcessEvents (inlined)
+                          aeMain
+                          main
+                          0xffffb5d676c3
+                          0xffffb5d677a7
+                          _start
+
+     3.18%  redis-server      [.] je_free                                -      -            
+            |          
+            |--1.72%--free_fastpath (inlined)
+            |          je_free
+            |          
+             --1.14%--cache_bin_dalloc_easy (inlined)
+                       free_fastpath (inlined)
+                       je_free
+
+     3.06%  redis-server      [.] keyHashSlot                            -      -            
+            |
+            ---keyHashSlot
+               getNodeByQuery
+               processCommand
+               processCommandAndResetClient (inlined)
+               processInputBuffer
+               readQueryFromClient
+               callHandler (inlined)
+               connSocketEventHandler
+               aeProcessEvents (inlined)
+               aeProcessEvents (inlined)
+               aeMain
+               main
+               0xffffb5d676c3
+               0xffffb5d677a7
+               _start
+
+     2.83%  redis-server      [.] sdsfree                                -      -            
+            |
+            ---sdsfree
+               freeStringObject (inlined)
+               freeStringObject (inlined)
+               decrRefCount
+               decrRefCount
+               setKey
+               setGenericCommand
+               call
+               processCommand
+               processCommandAndResetClient (inlined)
+               processInputBuffer
+               readQueryFromClient
+               callHandler (inlined)
+               connSocketEventHandler
+               aeProcessEvents (inlined)
+               aeProcessEvents (inlined)
+               aeMain
+               main
+               0xffffb5d676c3
+               0xffffb5d677a7
+               _start
+
+     2.83%  [vdso]            [.] 0x00000000000002d4                     -      -            
+     2.14%  [vdso]            [.] 0x00000000000002f0                     -      -            
+     2.01%  libc.so.6         [.] 0x00000000000994e0                     -      -            
+            |
+            ---0xffffb5dd94e0
+               dictSdsKeyCompare
+               dictFind
+               |          
+                --1.07%--lookupKey
+                          setGenericCommand
+                          call
+                          processCommand
+                          processCommandAndResetClient (inlined)
+                          processInputBuffer
+                          readQueryFromClient
+                          callHandler (inlined)
+                          connSocketEventHandler
+                          aeProcessEvents (inlined)
+                          aeProcessEvents (inlined)
+                          aeMain
+                          main
+                          0xffffb5d676c3
+                          0xffffb5d677a7
+                          _start
+
+     1.81%  redis-server      [.] processMultibulkBuffer                 -      -            
+            |          
+             --1.71%--processMultibulkBuffer
+                       processInputBuffer
+                       readQueryFromClient
+                       callHandler (inlined)
+                       connSocketEventHandler
+                       aeProcessEvents (inlined)
+                       aeProcessEvents (inlined)
+                       aeMain
+                       main
+                       0xffffb5d676c3
+                       0xffffb5d677a7
+                       _start
+
+     1.21%  [vdso]            [.] 0x0000000000000300                     -      -            
+     1.02%  redis-server      [.] call                                   -      -            
+
+
+#
+# (Tip: Treat branches as callchains: perf report --branch-history)
+#

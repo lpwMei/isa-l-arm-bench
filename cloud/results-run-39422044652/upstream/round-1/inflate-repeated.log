@@ -1,0 +1,7 @@
+igzip_perf-> compress level: 1 flush_type: 0 block_size: 4096
+  file info-> name: /home/runner/work/_temp/isa-l-arm-experiment/corpus/repeated.bin file_size: 2490368 compress_size: 13827 ratio: 0.56%
+
+    isal_stateless_deflate-> runtime =       1206 usecs
+
+    isal_stateless_inflate-> runtime =    3063123 usecs, bandwidth 15659 MB in 3.0631 sec = 5112.24 MB/s
+    isal_stateless_inflate-> runtime =    3062760 usecs, bandwidth 15492 MB in 3.0628 sec = 5058.37 MB/s

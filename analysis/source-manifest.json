@@ -1,0 +1,43 @@
+{
+  "checked_date": "2026-10-20",
+  "timezone": "Asia/Shanghai",
+  "scope": "source analysis only; no Kunpeng 950 measurements",
+  "repositories": [
+    {
+      "name": "isa-l",
+      "remote": "https://github.com/intel/isa-l.git",
+      "stable_tag": "v2.32.1",
+      "stable_commit": "7c3479e0a9dac17f448603ec1ad64c7c625f530c",
+      "head_branch": "master",
+      "head_commit": "8fa1e72fee7338fcfbf829b00f2f407631bd2dba",
+      "head_date": "2026-09-30T12:56:15+01:00",
+      "stable_source": "D:\\codex\\ISA-L\\releases\\isa-l-v2.32.1",
+      "archive": "D:\\codex\\ISA-L\\downloads\\isa-l-v2.32.1.tar",
+      "archive_sha256": "0fc2dce2ec07c5da9eee7e1e4ec77c0f19cc42ea650cd59dfa19148e73a6669d"
+    },
+    {
+      "name": "isa-l_crypto",
+      "remote": "https://github.com/intel/isa-l_crypto.git",
+      "stable_tag": "v2.26.1",
+      "stable_commit": "c353c2d021c03cfc6180ddf9e28a24b3b61e9760",
+      "head_branch": "master",
+      "head_commit": "f22c49aef162d7632bde4f22dc7491b22f0a7fc2",
+      "head_date": "2026-07-23T12:27:19+01:00",
+      "stable_source": "D:\\codex\\ISA-L\\releases\\isa-l_crypto-v2.26.1",
+      "archive": "D:\\codex\\ISA-L\\downloads\\isa-l_crypto-v2.26.1.tar",
+      "archive_sha256": "0b02d7ec246817cbcbee65fda7b838c973e09516749d0a629611c5b74fecbd83"
+    },
+    {
+      "name": "redis",
+      "remote": "https://github.com/redis/redis.git",
+      "stable_tag": "8.10.2",
+      "stable_commit": "498ecd0d6d007db11ddb3aea9428552598a78622",
+      "head_branch": "unstable",
+      "head_commit": "559d143b4e0409c452f7d229ba420954b6b647a2",
+      "head_date": "2026-10-20T09:06:36+03:00",
+      "stable_source": "D:\\codex\\ISA-L\\releases\\redis-8.10.2",
+      "archive": "D:\\codex\\ISA-L\\downloads\\redis-8.10.2.tar",
+      "archive_sha256": "d11a47627262bc3cb51714022352f3bf1927b907972c8e78c8dd9b520b9e20e4"
+    }
+  ]
+}

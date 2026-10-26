@@ -1,0 +1,52 @@
+name: EC table-path independent validation
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/ec-sve-opt]
+    paths: [.github/workflows/ec-sve-table4-validation.yml]
+permissions:
+  contents: read
+jobs:
+  validate:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    env:
+      UPSTREAM_SHA: 8fa1e72fee7338fcfbf829b00f2f407631bd2dba
+      VARIANT: table4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential autoconf automake libtool zlib1g-dev python3 qemu-user
+      - name: Build and check correctness
+        run: bash experiments/ec-sve/run_validation.sh build
+      - name: Wider vector reference checks (emulated correctness only)
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ec-sve-validation"
+          gcc -O2 -Wall -Wextra -DEC_BOUNDARY_QUICK -I"$ROOT/candidate/include" \
+            experiments/ec-sve/check_boundaries.c "$ROOT/candidate/.libs/libisal.a" -o "$ROOT/check_quick"
+          for VQ in 1 2 4; do
+            qemu-aarch64 -cpu max,sve-max-vq="$VQ" "$ROOT/check_quick" > "$ROOT/results/vector-$VQ.log" 2>&1
+            grep "SVE vector length: $((VQ * 16)) bytes" "$ROOT/results/vector-$VQ.log"
+          done
+      - name: Seven paired target rounds
+        run: bash experiments/ec-sve/run_validation.sh main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ec-table4-main-${{ github.run_id }}
+          path: ${{ runner.temp }}/ec-sve-validation/results/main
+          retention-days: 14
+      - name: Broader performance checks
+        run: bash experiments/ec-sve/run_validation.sh guards
+      - name: Apply fixed acceptance gate
+        run: bash experiments/ec-sve/run_validation.sh gate
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ec-table4-validation-${{ github.run_id }}
+          path: ${{ runner.temp }}/ec-sve-validation/results
+          retention-days: 14

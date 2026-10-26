@@ -1,0 +1,67 @@
+make: Entering directory '/home/runner/work/_temp/ec-sve-screen/group2'
+make --no-print-directory check-am
+make --no-print-directory erasure_code/gf_vect_mul_test erasure_code/erasure_code_test erasure_code/gf_inverse_test erasure_code/erasure_code_update_test raid/xor_gen_test raid/pq_gen_test raid/xor_check_test raid/pq_check_test crc/crc16_t10dif_test crc/crc16_t10dif_copy_test crc/crc64_funcs_test crc/crc32_funcs_test igzip/igzip_rand_test igzip/igzip_wrapper_hdr_test igzip/checksum32_funcs_test mem/mem_zero_detect_test misc/version_test
+  CC       erasure_code/gf_vect_mul_test.o
+  CCLD     erasure_code/gf_vect_mul_test
+  CC       erasure_code/erasure_code_test.o
+  CCLD     erasure_code/erasure_code_test
+  CC       erasure_code/gf_inverse_test.o
+  CCLD     erasure_code/gf_inverse_test
+  CC       erasure_code/erasure_code_update_test.o
+  CCLD     erasure_code/erasure_code_update_test
+  CC       raid/xor_gen_test.o
+  CCLD     raid/xor_gen_test
+  CC       raid/pq_gen_test.o
+  CCLD     raid/pq_gen_test
+  CC       raid/xor_check_test.o
+  CCLD     raid/xor_check_test
+  CC       raid/pq_check_test.o
+  CCLD     raid/pq_check_test
+  CC       crc/crc16_t10dif_test.o
+  CCLD     crc/crc16_t10dif_test
+  CC       crc/crc16_t10dif_copy_test.o
+  CCLD     crc/crc16_t10dif_copy_test
+  CC       crc/crc64_funcs_test.o
+  CCLD     crc/crc64_funcs_test
+  CC       crc/crc32_funcs_test.o
+  CCLD     crc/crc32_funcs_test
+  CC       igzip/igzip_rand_test.o
+  CCLD     igzip/igzip_rand_test
+  CC       igzip/igzip_wrapper_hdr_test.o
+  CCLD     igzip/igzip_wrapper_hdr_test
+  CC       igzip/checksum32_funcs_test.o
+  CCLD     igzip/checksum32_funcs_test
+  CC       mem/mem_zero_detect_test.o
+  CCLD     mem/mem_zero_detect_test
+  CC       misc/version_test.o
+  CCLD     misc/version_test
+make --no-print-directory check-TESTS
+PASS: erasure_code/gf_vect_mul_test
+PASS: erasure_code/erasure_code_test
+PASS: erasure_code/gf_inverse_test
+PASS: erasure_code/erasure_code_update_test
+PASS: raid/xor_gen_test
+PASS: raid/pq_gen_test
+PASS: raid/xor_check_test
+PASS: raid/pq_check_test
+PASS: crc/crc16_t10dif_test
+PASS: crc/crc16_t10dif_copy_test
+PASS: crc/crc64_funcs_test
+PASS: crc/crc32_funcs_test
+PASS: igzip/igzip_rand_test
+PASS: igzip/igzip_wrapper_hdr_test
+PASS: igzip/checksum32_funcs_test
+PASS: mem/mem_zero_detect_test
+PASS: misc/version_test
+============================================================================
+Testsuite summary for libisal 2.32.1
+============================================================================
+# TOTAL: 17
+# PASS:  17
+# SKIP:  0
+# XFAIL: 0
+# FAIL:  0
+# XPASS: 0
+# ERROR: 0
+============================================================================
+make: Leaving directory '/home/runner/work/_temp/ec-sve-screen/group2'

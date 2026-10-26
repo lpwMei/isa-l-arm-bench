@@ -1,0 +1,6 @@
+{
+  "hash_slot_cases": 1039,
+  "binary_pipeline_set_get": "PASS",
+  "same_slot_multikey": "PASS",
+  "crossslot": "PASS"
+}

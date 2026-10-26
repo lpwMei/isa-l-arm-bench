@@ -1,0 +1,4 @@
+d3c75c8471aa9bb83d0c223eb72939e59c1f80184069c13ae5d2391218e18402  bin/redis-benchmark
+abe13ba3337cf4a1e945be0a65fbc20c15a14be10d17245c85f33c2de44e7f76  bin/redis-cli
+66125817083ef8a43e62af07b91ebe7c4c898c757c767922848961f58a8ac8eb  bin/redis-server-baseline
+3b6b8e8ccc8bf61e331730e3770355c1bebd8cb10adeb811bd20ca4a9246446b  bin/redis-server-optimized

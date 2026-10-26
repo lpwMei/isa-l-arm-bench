@@ -1,0 +1,579 @@
+{
+  "scope": "Baseline SET; current 10-billion-request run; 10 seconds; cycles:u; 499 Hz",
+  "resolution": "Absolute sampled IP mapped to exact nm -S function ranges; non-PIE executable mapped at 0x400000",
+  "total_samples": 4991,
+  "total_user_cycle_period": 20087964517,
+  "crc16_user_cycles_percent": 19.21116111457735,
+  "crc16_sample_count": 933,
+  "crc16_address_range": [
+    "0x4b8910-0x4b8958"
+  ],
+  "symbols": [
+    {
+      "symbol": "crc16",
+      "user_cycles_percent": 19.21116111457735,
+      "samples": 933
+    },
+    {
+      "symbol": "dictFind",
+      "user_cycles_percent": 13.46214331826122,
+      "samples": 673
+    },
+    {
+      "symbol": "je_malloc_usable_size",
+      "user_cycles_percent": 8.703533937051708,
+      "samples": 438
+    },
+    {
+      "symbol": "(/usr/lib64/libc.so.6)",
+      "user_cycles_percent": 7.139865852442256,
+      "samples": 357
+    },
+    {
+      "symbol": "([vdso])",
+      "user_cycles_percent": 6.241591416287745,
+      "samples": 314
+    },
+    {
+      "symbol": "getNodeByQuery",
+      "user_cycles_percent": 5.449561442990277,
+      "samples": 274
+    },
+    {
+      "symbol": "dictSdsKeyCompare",
+      "user_cycles_percent": 5.447700472956784,
+      "samples": 274
+    },
+    {
+      "symbol": "je_malloc",
+      "user_cycles_percent": 4.272031814242576,
+      "samples": 215
+    },
+    {
+      "symbol": "siphash",
+      "user_cycles_percent": 4.013698139090555,
+      "samples": 202
+    },
+    {
+      "symbol": "keyHashSlot",
+      "user_cycles_percent": 3.1684403039509808,
+      "samples": 159
+    },
+    {
+      "symbol": "je_free",
+      "user_cycles_percent": 3.124675849904081,
+      "samples": 157
+    },
+    {
+      "symbol": "sdsfree",
+      "user_cycles_percent": 2.8433708428578064,
+      "samples": 143
+    },
+    {
+      "symbol": "processMultibulkBuffer",
+      "user_cycles_percent": 1.789957537488217,
+      "samples": 90
+    },
+    {
+      "symbol": "call",
+      "user_cycles_percent": 1.132678150677958,
+      "samples": 60
+    },
+    {
+      "symbol": "hdr_record_values",
+      "user_cycles_percent": 0.7518518407984303,
+      "samples": 35
+    },
+    {
+      "symbol": "_sdsnewlen",
+      "user_cycles_percent": 0.7318298669613287,
+      "samples": 37
+    },
+    {
+      "symbol": "zfree",
+      "user_cycles_percent": 0.5183220923746915,
+      "samples": 26
+    },
+    {
+      "symbol": "processCommand",
+      "user_cycles_percent": 0.5165088822821918,
+      "samples": 26
+    },
+    {
+      "symbol": "lookupKey",
+      "user_cycles_percent": 0.45716326272023355,
+      "samples": 23
+    },
+    {
+      "symbol": "([unknown])",
+      "user_cycles_percent": 0.43729661074251486,
+      "samples": 22
+    },
+    {
+      "symbol": "string2ll.part.0",
+      "user_cycles_percent": 0.435752133701362,
+      "samples": 22
+    },
+    {
+      "symbol": "processInputBuffer",
+      "user_cycles_percent": 0.3770409338183719,
+      "samples": 19
+    },
+    {
+      "symbol": "createEmbeddedStringObject",
+      "user_cycles_percent": 0.37680946188421627,
+      "samples": 19
+    },
+    {
+      "symbol": "clientHasPendingReplies",
+      "user_cycles_percent": 0.3177015119973492,
+      "samples": 16
+    },
+    {
+      "symbol": "setGenericCommand",
+      "user_cycles_percent": 0.29968667531771703,
+      "samples": 15
+    },
+    {
+      "symbol": "readQueryFromClient",
+      "user_cycles_percent": 0.2966731295725138,
+      "samples": 15
+    },
+    {
+      "symbol": "createObject",
+      "user_cycles_percent": 0.29504398989674896,
+      "samples": 15
+    },
+    {
+      "symbol": "zmalloc",
+      "user_cycles_percent": 0.2790858324772299,
+      "samples": 14
+    },
+    {
+      "symbol": "resetClient",
+      "user_cycles_percent": 0.27708089564224514,
+      "samples": 14
+    },
+    {
+      "symbol": "je_nallocx",
+      "user_cycles_percent": 0.2385118559894557,
+      "samples": 12
+    },
+    {
+      "symbol": "alsoPropagate",
+      "user_cycles_percent": 0.23728563418987245,
+      "samples": 12
+    },
+    {
+      "symbol": "decrRefCount",
+      "user_cycles_percent": 0.23628122182231154,
+      "samples": 12
+    },
+    {
+      "symbol": "prepareClientToWrite",
+      "user_cycles_percent": 0.21875846586054581,
+      "samples": 11
+    },
+    {
+      "symbol": "connSocketEventHandler",
+      "user_cycles_percent": 0.19970878565645367,
+      "samples": 10
+    },
+    {
+      "symbol": "dictSdsHash",
+      "user_cycles_percent": 0.1992619310240491,
+      "samples": 10
+    },
+    {
+      "symbol": "ACLSelectorCheckCmd",
+      "user_cycles_percent": 0.19875142633895165,
+      "samples": 10
+    },
+    {
+      "symbol": "sdsResize",
+      "user_cycles_percent": 0.19815656766176276,
+      "samples": 10
+    },
+    {
+      "symbol": "listNext",
+      "user_cycles_percent": 0.19803285179209879,
+      "samples": 10
+    },
+    {
+      "symbol": "updateClientMemUsageAndBucket",
+      "user_cycles_percent": 0.1788473887914126,
+      "samples": 9
+    },
+    {
+      "symbol": "_addReplyToBufferOrList",
+      "user_cycles_percent": 0.178722064993779,
+      "samples": 9
+    },
+    {
+      "symbol": "_writeToClient",
+      "user_cycles_percent": 0.17803965638098004,
+      "samples": 9
+    },
+    {
+      "symbol": "dbOverwrite",
+      "user_cycles_percent": 0.17801469616166188,
+      "samples": 9
+    },
+    {
+      "symbol": "expireIfNeeded",
+      "user_cycles_percent": 0.1596176405671416,
+      "samples": 8
+    },
+    {
+      "symbol": "ACLCheckAllUserCommandPerm",
+      "user_cycles_percent": 0.159564210564361,
+      "samples": 8
+    },
+    {
+      "symbol": "setKey",
+      "user_cycles_percent": 0.15947496309488826,
+      "samples": 8
+    },
+    {
+      "symbol": "commandProcessed",
+      "user_cycles_percent": 0.15907458903044816,
+      "samples": 8
+    },
+    {
+      "symbol": "setCommand",
+      "user_cycles_percent": 0.15883322560132138,
+      "samples": 8
+    },
+    {
+      "symbol": "lookupCommandLogic",
+      "user_cycles_percent": 0.1583250506694431,
+      "samples": 8
+    },
+    {
+      "symbol": "aeProcessEvents.part.0",
+      "user_cycles_percent": 0.13981386205770946,
+      "samples": 7
+    },
+    {
+      "symbol": "tryObjectEncoding",
+      "user_cycles_percent": 0.13907509631629045,
+      "samples": 7
+    },
+    {
+      "symbol": "unresolved-redis:0x43ee20",
+      "user_cycles_percent": 0.13831518358411285,
+      "samples": 7
+    },
+    {
+      "symbol": "performEvictions",
+      "user_cycles_percent": 0.11954788141763621,
+      "samples": 6
+    },
+    {
+      "symbol": "siphash_nocase",
+      "user_cycles_percent": 0.11943699412499316,
+      "samples": 6
+    },
+    {
+      "symbol": "trackingHandlePendingKeyInvalidations",
+      "user_cycles_percent": 0.11905602471450244,
+      "samples": 6
+    },
+    {
+      "symbol": "addReply",
+      "user_cycles_percent": 0.11875974282914949,
+      "samples": 6
+    },
+    {
+      "symbol": "unresolved-redis:0x43eb74",
+      "user_cycles_percent": 0.11857073911019195,
+      "samples": 6
+    },
+    {
+      "symbol": "counts_index_for",
+      "user_cycles_percent": 0.1185005926302533,
+      "samples": 6
+    },
+    {
+      "symbol": "notifyKeyspaceEvent",
+      "user_cycles_percent": 0.11833804256216468,
+      "samples": 6
+    },
+    {
+      "symbol": "createStringObject",
+      "user_cycles_percent": 0.10135804940699258,
+      "samples": 5
+    },
+    {
+      "symbol": "parseExtendedStringArgumentsOrReply",
+      "user_cycles_percent": 0.10008735321582807,
+      "samples": 5
+    },
+    {
+      "symbol": "zmalloc_used_memory",
+      "user_cycles_percent": 0.10006897902964869,
+      "samples": 5
+    },
+    {
+      "symbol": "extend_to_usable",
+      "user_cycles_percent": 0.09931061448817871,
+      "samples": 5
+    },
+    {
+      "symbol": "evictClients",
+      "user_cycles_percent": 0.09921964957242263,
+      "samples": 5
+    },
+    {
+      "symbol": "getKeysFromCommand",
+      "user_cycles_percent": 0.08008671553748145,
+      "samples": 4
+    },
+    {
+      "symbol": "je_free_default",
+      "user_cycles_percent": 0.08004115591897329,
+      "samples": 4
+    },
+    {
+      "symbol": "getKeysPrepareResult",
+      "user_cycles_percent": 0.0799688389851809,
+      "samples": 4
+    },
+    {
+      "symbol": "moduleNotifyKeyUnlink",
+      "user_cycles_percent": 0.07972857571729651,
+      "samples": 4
+    },
+    {
+      "symbol": "isInsideYieldingLongCommand",
+      "user_cycles_percent": 0.07969653663242779,
+      "samples": 4
+    },
+    {
+      "symbol": "dictDelete",
+      "user_cycles_percent": 0.07947642971237333,
+      "samples": 4
+    },
+    {
+      "symbol": "slowlogPushEntryIfNeeded",
+      "user_cycles_percent": 0.07943905409876327,
+      "samples": 4
+    },
+    {
+      "symbol": "zmalloc_usable",
+      "user_cycles_percent": 0.07908373188610407,
+      "samples": 4
+    },
+    {
+      "symbol": "trackingInvalidateKey",
+      "user_cycles_percent": 0.07890975706665224,
+      "samples": 4
+    },
+    {
+      "symbol": "string2ll",
+      "user_cycles_percent": 0.0784589249282175,
+      "samples": 4
+    },
+    {
+      "symbol": "moduleCallCommandFilters",
+      "user_cycles_percent": 0.05994871202509701,
+      "samples": 3
+    },
+    {
+      "symbol": "unresolved-redis:0x43f0f0",
+      "user_cycles_percent": 0.05993844219413303,
+      "samples": 3
+    },
+    {
+      "symbol": "unresolved-redis:0x43eb70",
+      "user_cycles_percent": 0.05987184012507483,
+      "samples": 3
+    },
+    {
+      "symbol": "keyIsExpired",
+      "user_cycles_percent": 0.059831851006250956,
+      "samples": 3
+    },
+    {
+      "symbol": "unresolved-redis:0x43ee30",
+      "user_cycles_percent": 0.05965885189541228,
+      "samples": 3
+    },
+    {
+      "symbol": "getCommandFlags",
+      "user_cycles_percent": 0.059623263421557944,
+      "samples": 3
+    },
+    {
+      "symbol": "unresolved-redis:0x43f0f4",
+      "user_cycles_percent": 0.05950386854718079,
+      "samples": 3
+    },
+    {
+      "symbol": "unresolved-redis:0x43f170",
+      "user_cycles_percent": 0.05920165773857136,
+      "samples": 3
+    },
+    {
+      "symbol": "sdsRemoveFreeSpace",
+      "user_cycles_percent": 0.059155490791232564,
+      "samples": 3
+    },
+    {
+      "symbol": "commandCheckArity",
+      "user_cycles_percent": 0.058878085880681066,
+      "samples": 3
+    },
+    {
+      "symbol": "ctl_refresh",
+      "user_cycles_percent": 0.05868690175165944,
+      "samples": 3
+    },
+    {
+      "symbol": "addReply.part.0",
+      "user_cycles_percent": 0.04692478917922613,
+      "samples": 2
+    },
+    {
+      "symbol": "trimStringObjectIfNeeded",
+      "user_cycles_percent": 0.040214034593517994,
+      "samples": 2
+    },
+    {
+      "symbol": "je_tcache_event_hard",
+      "user_cycles_percent": 0.03997702700641424,
+      "samples": 2
+    },
+    {
+      "symbol": "setGetKeys",
+      "user_cycles_percent": 0.0399410203717257,
+      "samples": 2
+    },
+    {
+      "symbol": "getExpire",
+      "user_cycles_percent": 0.03986959949686375,
+      "samples": 2
+    },
+    {
+      "symbol": "scriptIsTimedout",
+      "user_cycles_percent": 0.03986803637184063,
+      "samples": 2
+    },
+    {
+      "symbol": "sdssubstr",
+      "user_cycles_percent": 0.03983027744413255,
+      "samples": 2
+    },
+    {
+      "symbol": "removeExpire",
+      "user_cycles_percent": 0.03973508113898268,
+      "samples": 2
+    },
+    {
+      "symbol": "handleClientsWithPendingWrites",
+      "user_cycles_percent": 0.0394897153132999,
+      "samples": 2
+    },
+    {
+      "symbol": "authRequired",
+      "user_cycles_percent": 0.039465491853546766,
+      "samples": 2
+    },
+    {
+      "symbol": "checkGoodReplicasStatus",
+      "user_cycles_percent": 0.039460334536591514,
+      "samples": 2
+    },
+    {
+      "symbol": "incrRefCount",
+      "user_cycles_percent": 0.03936498888828657,
+      "samples": 2
+    },
+    {
+      "symbol": "checkClientPauseTimeoutAndReturnIfPaused",
+      "user_cycles_percent": 0.038821693424439856,
+      "samples": 2
+    },
+    {
+      "symbol": "je_malloc_default",
+      "user_cycles_percent": 0.0203774155242849,
+      "samples": 1
+    },
+    {
+      "symbol": "je_arena_tcache_fill_small",
+      "user_cycles_percent": 0.020323228849518583,
+      "samples": 1
+    },
+    {
+      "symbol": "writeCommandsDeniedByDiskError",
+      "user_cycles_percent": 0.020125916673033716,
+      "samples": 1
+    },
+    {
+      "symbol": "touchWatchedKey",
+      "user_cycles_percent": 0.02010969800639259,
+      "samples": 1
+    },
+    {
+      "symbol": "monotonicGetType",
+      "user_cycles_percent": 0.02003956148266428,
+      "samples": 1
+    },
+    {
+      "symbol": "lookupKeyWrite",
+      "user_cycles_percent": 0.01989266257722751,
+      "samples": 1
+    },
+    {
+      "symbol": "sdsnewlen",
+      "user_cycles_percent": 0.019872570944764776,
+      "samples": 1
+    },
+    {
+      "symbol": "sdsrange",
+      "user_cycles_percent": 0.01979569904474259,
+      "samples": 1
+    },
+    {
+      "symbol": "unresolved-redis:0x43e544",
+      "user_cycles_percent": 0.01979120381577484,
+      "samples": 1
+    },
+    {
+      "symbol": "listRewind",
+      "user_cycles_percent": 0.01974642575977824,
+      "samples": 1
+    },
+    {
+      "symbol": "connSocketWrite",
+      "user_cycles_percent": 0.019724646549663157,
+      "samples": 1
+    },
+    {
+      "symbol": "moduleNotifyKeyspaceEvent",
+      "user_cycles_percent": 0.019664605623217906,
+      "samples": 1
+    },
+    {
+      "symbol": "__aarch64_ldadd8_relax",
+      "user_cycles_percent": 0.019531356682154975,
+      "samples": 1
+    },
+    {
+      "symbol": "databasesCron",
+      "user_cycles_percent": 0.01933529401006757,
+      "samples": 1
+    },
+    {
+      "symbol": "ACLCheckAllPerm",
+      "user_cycles_percent": 0.019284173848085458,
+      "samples": 1
+    },
+    {
+      "symbol": "je_arena_dalloc_bin_junked_locked",
+      "user_cycles_percent": 0.019256420911767384,
+      "samples": 1
+    }
+  ],
+  "limitations": "User-mode cycles denominator excludes kernel time, waiting and other processes; no optimized-run profile yet; not itself an end-to-end Amdahl fraction."
+}

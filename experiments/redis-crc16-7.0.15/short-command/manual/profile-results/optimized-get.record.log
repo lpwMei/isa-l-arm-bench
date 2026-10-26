@@ -1,0 +1,2 @@
+[ perf record: Woken up 189 times to write data ]
+[ perf record: Captured and wrote 47.351 MB /home/liupengwei/redis-crc16-20261026/manual/profile-results/optimized-get.data (5796 samples) ]

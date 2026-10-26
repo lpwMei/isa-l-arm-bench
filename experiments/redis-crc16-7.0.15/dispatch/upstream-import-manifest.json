@@ -1,0 +1,27 @@
+{
+  "crc16_xmodem_dispatch.c": {
+    "sha256": "9301bc6a92c3f0af7c44ce77e641c8eb3e2566bf4e07bda156af381f065d4145",
+    "byte_identical": true
+  },
+  "crc16_xmodem_constants.h": {
+    "sha256": "4e65f43b6f1f452ffaf6aaab5fe271fd96d7a7c65aefd5cab4058f7fd435ca69",
+    "byte_identical": true
+  },
+  "crc16_xmodem_pmull.S": {
+    "sha256": "37beba0f81ba0f746507f084beb0ee04f4baaa0bcac825ffad1a4cdd4147d483",
+    "byte_identical": true
+  },
+  "crc16_xmodem_short.S": {
+    "sha256": "860c5b38323935e56f79cadc590f3c289f965f80b411423889568d9d7d303894",
+    "byte_identical": true
+  },
+  "crc16_xmodem_pmull_8way.S": {
+    "sha256": "c416ab6ae6fd2396fa481efc610012dd9f515405e5c87c22617552c97deb42c6",
+    "byte_identical": true
+  },
+  "crc16_xmodem_pmull_opt.S": {
+    "sha256": "cac2aa9437088231abea11fbc0528bb91a5f5473bf8dbd461dc282e74bec0b6e",
+    "byte_identical": true
+  },
+  "upstream_commit": "f8e9dbea5bd065823f0f77532136851e1d25dd0c"
+}

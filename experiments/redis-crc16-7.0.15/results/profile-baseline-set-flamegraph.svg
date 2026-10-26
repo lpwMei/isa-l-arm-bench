@@ -1,0 +1,2327 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" width="1500" height="606" onload="init(evt)" viewBox="0 0 1500 606" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<!-- Flame graph stack visualization. See https://github.com/brendangregg/FlameGraph for latest version, and http://www.brendangregg.com/flamegraphs.html for examples. -->
+<!-- NOTES:  -->
+<defs>
+	<linearGradient id="background" y1="0" y2="1" x1="0" x2="0" >
+		<stop stop-color="#eeeeee" offset="5%" />
+		<stop stop-color="#eeeeb0" offset="95%" />
+	</linearGradient>
+</defs>
+<style type="text/css">
+	text { font-family:Verdana; font-size:12px; fill:rgb(0,0,0); }
+	#search, #ignorecase { opacity:0.1; cursor:pointer; }
+	#search:hover, #search.show, #ignorecase:hover, #ignorecase.show { opacity:1; }
+	#subtitle { text-anchor:middle; font-color:rgb(160,160,160); }
+	#title { text-anchor:middle; font-size:17px}
+	#unzoom { cursor:pointer; }
+	#frames > *:hover { stroke:black; stroke-width:0.5; cursor:pointer; }
+	.hide { display:none; }
+	.parent { opacity:0.5; }
+</style>
+<script type="text/ecmascript">
+<![CDATA[
+	"use strict";
+	var details, searchbtn, unzoombtn, matchedtxt, svg, searching, currentSearchTerm, ignorecase, ignorecaseBtn;
+	function init(evt) {
+		details = document.getElementById("details").firstChild;
+		searchbtn = document.getElementById("search");
+		ignorecaseBtn = document.getElementById("ignorecase");
+		unzoombtn = document.getElementById("unzoom");
+		matchedtxt = document.getElementById("matched");
+		svg = document.getElementsByTagName("svg")[0];
+		searching = 0;
+		currentSearchTerm = null;
+
+		// use GET parameters to restore a flamegraphs state.
+		var params = get_params();
+		if (params.x && params.y)
+			zoom(find_group(document.querySelector('[x="' + params.x + '"][y="' + params.y + '"]')));
+                if (params.s) search(params.s);
+	}
+
+	// event listeners
+	window.addEventListener("click", function(e) {
+		var target = find_group(e.target);
+		if (target) {
+			if (target.nodeName == "a") {
+				if (e.ctrlKey === false) return;
+				e.preventDefault();
+			}
+			if (target.classList.contains("parent")) unzoom(true);
+			zoom(target);
+			if (!document.querySelector('.parent')) {
+				// we have basically done a clearzoom so clear the url
+				var params = get_params();
+				if (params.x) delete params.x;
+				if (params.y) delete params.y;
+				history.replaceState(null, null, parse_params(params));
+				unzoombtn.classList.add("hide");
+				return;
+			}
+
+			// set parameters for zoom state
+			var el = target.querySelector("rect");
+			if (el && el.attributes && el.attributes.y && el.attributes._orig_x) {
+				var params = get_params()
+				params.x = el.attributes._orig_x.value;
+				params.y = el.attributes.y.value;
+				history.replaceState(null, null, parse_params(params));
+			}
+		}
+		else if (e.target.id == "unzoom") clearzoom();
+		else if (e.target.id == "search") search_prompt();
+		else if (e.target.id == "ignorecase") toggle_ignorecase();
+	}, false)
+
+	// mouse-over for info
+	// show
+	window.addEventListener("mouseover", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = "Function: " + g_to_text(target);
+	}, false)
+
+	// clear
+	window.addEventListener("mouseout", function(e) {
+		var target = find_group(e.target);
+		if (target) details.nodeValue = ' ';
+	}, false)
+
+	// ctrl-F for search
+	// ctrl-I to toggle case-sensitive search
+	window.addEventListener("keydown",function (e) {
+		if (e.keyCode === 114 || (e.ctrlKey && e.keyCode === 70)) {
+			e.preventDefault();
+			search_prompt();
+		}
+		else if (e.ctrlKey && e.keyCode === 73) {
+			e.preventDefault();
+			toggle_ignorecase();
+		}
+	}, false)
+
+	// functions
+	function get_params() {
+		var params = {};
+		var paramsarr = window.location.search.substr(1).split('&');
+		for (var i = 0; i < paramsarr.length; ++i) {
+			var tmp = paramsarr[i].split("=");
+			if (!tmp[0] || !tmp[1]) continue;
+			params[tmp[0]]  = decodeURIComponent(tmp[1]);
+		}
+		return params;
+	}
+	function parse_params(params) {
+		var uri = "?";
+		for (var key in params) {
+			uri += key + '=' + encodeURIComponent(params[key]) + '&';
+		}
+		if (uri.slice(-1) == "&")
+			uri = uri.substring(0, uri.length - 1);
+		if (uri == '?')
+			uri = window.location.href.split('?')[0];
+		return uri;
+	}
+	function find_child(node, selector) {
+		var children = node.querySelectorAll(selector);
+		if (children.length) return children[0];
+	}
+	function find_group(node) {
+		var parent = node.parentElement;
+		if (!parent) return;
+		if (parent.id == "frames") return node;
+		return find_group(parent);
+	}
+	function orig_save(e, attr, val) {
+		if (e.attributes["_orig_" + attr] != undefined) return;
+		if (e.attributes[attr] == undefined) return;
+		if (val == undefined) val = e.attributes[attr].value;
+		e.setAttribute("_orig_" + attr, val);
+	}
+	function orig_load(e, attr) {
+		if (e.attributes["_orig_"+attr] == undefined) return;
+		e.attributes[attr].value = e.attributes["_orig_" + attr].value;
+		e.removeAttribute("_orig_"+attr);
+	}
+	function g_to_text(e) {
+		var text = find_child(e, "title").firstChild.nodeValue;
+		return (text)
+	}
+	function g_to_func(e) {
+		var func = g_to_text(e);
+		// if there's any manipulation we want to do to the function
+		// name before it's searched, do it here before returning.
+		return (func);
+	}
+	function update_text(e) {
+		var r = find_child(e, "rect");
+		var t = find_child(e, "text");
+		var w = parseFloat(r.attributes.width.value) -3;
+		var txt = find_child(e, "title").textContent.replace(/\([^(]*\)$/,"");
+		t.attributes.x.value = parseFloat(r.attributes.x.value) + 3;
+
+		// Smaller than this size won't fit anything
+		if (w < 2 * 12 * 0.59) {
+			t.textContent = "";
+			return;
+		}
+
+		t.textContent = txt;
+		var sl = t.getSubStringLength(0, txt.length);
+		// check if only whitespace or if we can fit the entire string into width w
+		if (/^ *$/.test(txt) || sl < w)
+			return;
+
+		// this isn't perfect, but gives a good starting point
+		// and avoids calling getSubStringLength too often
+		var start = Math.floor((w/sl) * txt.length);
+		for (var x = start; x > 0; x = x-2) {
+			if (t.getSubStringLength(0, x + 2) <= w) {
+				t.textContent = txt.substring(0, x) + "..";
+				return;
+			}
+		}
+		t.textContent = "";
+	}
+
+	// zoom
+	function zoom_reset(e) {
+		if (e.attributes != undefined) {
+			orig_load(e, "x");
+			orig_load(e, "width");
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_reset(c[i]);
+		}
+	}
+	function zoom_child(e, x, ratio) {
+		if (e.attributes != undefined) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = (parseFloat(e.attributes.x.value) - x - 10) * ratio + 10;
+				if (e.tagName == "text")
+					e.attributes.x.value = find_child(e.parentNode, "rect[x]").attributes.x.value + 3;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseFloat(e.attributes.width.value) * ratio;
+			}
+		}
+
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_child(c[i], x - 10, ratio);
+		}
+	}
+	function zoom_parent(e) {
+		if (e.attributes) {
+			if (e.attributes.x != undefined) {
+				orig_save(e, "x");
+				e.attributes.x.value = 10;
+			}
+			if (e.attributes.width != undefined) {
+				orig_save(e, "width");
+				e.attributes.width.value = parseInt(svg.width.baseVal.value) - (10 * 2);
+			}
+		}
+		if (e.childNodes == undefined) return;
+		for (var i = 0, c = e.childNodes; i < c.length; i++) {
+			zoom_parent(c[i]);
+		}
+	}
+	function zoom(node) {
+		var attr = find_child(node, "rect").attributes;
+		var width = parseFloat(attr.width.value);
+		var xmin = parseFloat(attr.x.value);
+		var xmax = parseFloat(xmin + width);
+		var ymin = parseFloat(attr.y.value);
+		var ratio = (svg.width.baseVal.value - 2 * 10) / width;
+
+		// XXX: Workaround for JavaScript float issues (fix me)
+		var fudge = 0.0001;
+
+		unzoombtn.classList.remove("hide");
+
+		var el = document.getElementById("frames").children;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var a = find_child(e, "rect").attributes;
+			var ex = parseFloat(a.x.value);
+			var ew = parseFloat(a.width.value);
+			var upstack;
+			// Is it an ancestor
+			if (0 == 0) {
+				upstack = parseFloat(a.y.value) > ymin;
+			} else {
+				upstack = parseFloat(a.y.value) < ymin;
+			}
+			if (upstack) {
+				// Direct ancestor
+				if (ex <= xmin && (ex+ew+fudge) >= xmax) {
+					e.classList.add("parent");
+					zoom_parent(e);
+					update_text(e);
+				}
+				// not in current path
+				else
+					e.classList.add("hide");
+			}
+			// Children maybe
+			else {
+				// no common path
+				if (ex < xmin || ex + fudge >= xmax) {
+					e.classList.add("hide");
+				}
+				else {
+					zoom_child(e, xmin, ratio);
+					update_text(e);
+				}
+			}
+		}
+		search();
+	}
+	function unzoom(dont_update_text) {
+		unzoombtn.classList.add("hide");
+		var el = document.getElementById("frames").children;
+		for(var i = 0; i < el.length; i++) {
+			el[i].classList.remove("parent");
+			el[i].classList.remove("hide");
+			zoom_reset(el[i]);
+			if(!dont_update_text) update_text(el[i]);
+		}
+		search();
+	}
+	function clearzoom() {
+		unzoom();
+
+		// remove zoom state
+		var params = get_params();
+		if (params.x) delete params.x;
+		if (params.y) delete params.y;
+		history.replaceState(null, null, parse_params(params));
+	}
+
+	// search
+	function toggle_ignorecase() {
+		ignorecase = !ignorecase;
+		if (ignorecase) {
+			ignorecaseBtn.classList.add("show");
+		} else {
+			ignorecaseBtn.classList.remove("show");
+		}
+		reset_search();
+		search();
+	}
+	function reset_search() {
+		var el = document.querySelectorAll("#frames rect");
+		for (var i = 0; i < el.length; i++) {
+			orig_load(el[i], "fill")
+		}
+		var params = get_params();
+		delete params.s;
+		history.replaceState(null, null, parse_params(params));
+	}
+	function search_prompt() {
+		if (!searching) {
+			var term = prompt("Enter a search term (regexp " +
+			    "allowed, eg: ^ext4_)"
+			    + (ignorecase ? ", ignoring case" : "")
+			    + "\nPress Ctrl-i to toggle case sensitivity", "");
+			if (term != null) search(term);
+		} else {
+			reset_search();
+			searching = 0;
+			currentSearchTerm = null;
+			searchbtn.classList.remove("show");
+			searchbtn.firstChild.nodeValue = "Search"
+			matchedtxt.classList.add("hide");
+			matchedtxt.firstChild.nodeValue = ""
+		}
+	}
+	function search(term) {
+		if (term) currentSearchTerm = term;
+		if (currentSearchTerm === null) return;
+
+		var re = new RegExp(currentSearchTerm, ignorecase ? 'i' : '');
+		var el = document.getElementById("frames").children;
+		var matches = new Object();
+		var maxwidth = 0;
+		for (var i = 0; i < el.length; i++) {
+			var e = el[i];
+			var func = g_to_func(e);
+			var rect = find_child(e, "rect");
+			if (func == null || rect == null)
+				continue;
+
+			// Save max width. Only works as we have a root frame
+			var w = parseFloat(rect.attributes.width.value);
+			if (w > maxwidth)
+				maxwidth = w;
+
+			if (func.match(re)) {
+				// highlight
+				var x = parseFloat(rect.attributes.x.value);
+				orig_save(rect, "fill");
+				rect.attributes.fill.value = "rgb(230,0,230)";
+
+				// remember matches
+				if (matches[x] == undefined) {
+					matches[x] = w;
+				} else {
+					if (w > matches[x]) {
+						// overwrite with parent
+						matches[x] = w;
+					}
+				}
+				searching = 1;
+			}
+		}
+		if (!searching)
+			return;
+		var params = get_params();
+		params.s = currentSearchTerm;
+		history.replaceState(null, null, parse_params(params));
+
+		searchbtn.classList.add("show");
+		searchbtn.firstChild.nodeValue = "Reset Search";
+
+		// calculate percent matched, excluding vertical overlap
+		var count = 0;
+		var lastx = -1;
+		var lastw = 0;
+		var keys = Array();
+		for (k in matches) {
+			if (matches.hasOwnProperty(k))
+				keys.push(k);
+		}
+		// sort the matched frames by their x location
+		// ascending, then width descending
+		keys.sort(function(a, b){
+			return a - b;
+		});
+		// Step through frames saving only the biggest bottom-up frames
+		// thanks to the sort order. This relies on the tree property
+		// where children are always smaller than their parents.
+		var fudge = 0.0001;	// JavaScript floating point
+		for (var k in keys) {
+			var x = parseFloat(keys[k]);
+			var w = matches[keys[k]];
+			if (x >= lastx + lastw - fudge) {
+				count += w;
+				lastx = x;
+				lastw = w;
+			}
+		}
+		// display matched percent
+		matchedtxt.classList.remove("hide");
+		var pct = 100 * count / maxwidth;
+		if (pct != 100) pct = pct.toFixed(1)
+		matchedtxt.firstChild.nodeValue = "Matched: " + pct + "%";
+	}
+]]>
+</script>
+<rect x="0.0" y="0" width="1500.0" height="606.0" fill="url(#background)"  />
+<text id="title" x="750.00" y="24" >Redis 7.0.15 baseline SET - user cycles</text>
+<text id="subtitle" x="750.00" y="48" >64B key, 64B value, c200 P16, 30s @199Hz; cycles:u only</text>
+<text id="details" x="10.00" y="589" > </text>
+<text id="unzoom" x="10.00" y="24" class="hide">Reset Zoom</text>
+<text id="search" x="1390.00" y="24" >Search</text>
+<text id="ignorecase" x="1474.00" y="24" >ic</text>
+<text id="matched" x="1390.00" y="589" > </text>
+<g id="frames">
+<g >
+<title>free_fastpath (1,007,559,299 cycles, 1.69%)</title><rect x="163.2" y="253" width="25.0" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="166.16" y="263.5" >f..</text>
+</g>
+<g >
+<title>memcmp@plt (9,869,562 cycles, 0.02%)</title><rect x="1489.8" y="493" width="0.2" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="1492.75" y="503.5" ></text>
+</g>
+<g >
+<title>dictFetchValue (1,695,095,643 cycles, 2.85%)</title><rect x="1205.8" y="285" width="42.1" height="15.0" fill="rgb(246,193,46)" rx="2" ry="2" />
+<text  x="1208.76" y="295.5" >dic..</text>
+</g>
+<g >
+<title>rtree_leaf_elm_szind_read (9,950,541 cycles, 0.02%)</title><rect x="1470.2" y="237" width="0.2" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1473.17" y="247.5" ></text>
+</g>
+<g >
+<title>sdslen (60,016,847 cycles, 0.10%)</title><rect x="593.5" y="221" width="1.5" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="596.46" y="231.5" ></text>
+</g>
+<g >
+<title>sdssubstr (19,899,863 cycles, 0.03%)</title><rect x="1479.8" y="349" width="0.5" height="15.0" fill="rgb(221,75,17)" rx="2" ry="2" />
+<text  x="1482.83" y="359.5" ></text>
+</g>
+<g >
+<title>sz_index2size (159,870,672 cycles, 0.27%)</title><rect x="1322.5" y="237" width="3.9" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1325.45" y="247.5" ></text>
+</g>
+<g >
+<title>isalloc (697,491,951 cycles, 1.17%)</title><rect x="661.8" y="157" width="17.4" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="664.84" y="167.5" ></text>
+</g>
+<g >
+<title>removeExpire (9,869,562 cycles, 0.02%)</title><rect x="1489.8" y="525" width="0.2" height="15.0" fill="rgb(227,102,24)" rx="2" ry="2" />
+<text  x="1492.75" y="535.5" ></text>
+</g>
+<g >
+<title>clientHasPendingReplies (19,915,363 cycles, 0.03%)</title><rect x="118.0" y="365" width="0.5" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="121.05" y="375.5" ></text>
+</g>
+<g >
+<title>_sdsMakeRoomFor (9,952,128 cycles, 0.02%)</title><rect x="126.2" y="365" width="0.3" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="129.22" y="375.5" ></text>
+</g>
+<g >
+<title>connRead (169,971,360 cycles, 0.29%)</title><rect x="126.7" y="365" width="4.2" height="15.0" fill="rgb(231,119,28)" rx="2" ry="2" />
+<text  x="129.71" y="375.5" ></text>
+</g>
+<g >
+<title>lookupKey (10,188,859,818 cycles, 17.10%)</title><rect x="295.5" y="285" width="253.1" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="298.48" y="295.5" >lookupKey</text>
+</g>
+<g >
+<title>je_malloc_usable_size (977,558,253 cycles, 1.64%)</title><rect x="1339.0" y="285" width="24.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="1342.05" y="295.5" >j..</text>
+</g>
+<g >
+<title>gettimeofday@plt (19,944,788 cycles, 0.03%)</title><rect x="1483.5" y="493" width="0.5" height="15.0" fill="rgb(248,197,47)" rx="2" ry="2" />
+<text  x="1486.55" y="503.5" ></text>
+</g>
+<g >
+<title>ticker_tick (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="157" width="0.2" height="15.0" fill="rgb(244,180,43)" rx="2" ry="2" />
+<text  x="1341.80" y="167.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCompare (9,869,562 cycles, 0.02%)</title><rect x="1489.8" y="509" width="0.2" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1492.75" y="519.5" ></text>
+</g>
+<g >
+<title>bitmap_unset (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="93" width="0.2" height="15.0" fill="rgb(223,86,20)" rx="2" ry="2" />
+<text  x="1468.95" y="103.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (39,690,089 cycles, 0.07%)</title><rect x="1326.4" y="269" width="1.0" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="1329.43" y="279.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (19,747,875 cycles, 0.03%)</title><rect x="1305.1" y="317" width="0.5" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="1308.13" y="327.5" ></text>
+</g>
+<g >
+<title>updateClientMemUsageAndBucket (9,934,962 cycles, 0.02%)</title><rect x="1480.3" y="349" width="0.3" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="1483.33" y="359.5" ></text>
+</g>
+<g >
+<title>tsd_fetch_impl (10,023,994 cycles, 0.02%)</title><rect x="272.7" y="189" width="0.3" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="275.72" y="199.5" ></text>
+</g>
+<g >
+<title>getNodeByQuery (17,015,504,319 cycles, 28.56%)</title><rect x="780.1" y="317" width="422.7" height="15.0" fill="rgb(219,66,15)" rx="2" ry="2" />
+<text  x="783.08" y="327.5" >getNodeByQuery</text>
+</g>
+<g >
+<title>commandProcessed (2,954,078,882 cycles, 4.96%)</title><rect x="136.6" y="317" width="73.4" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="139.63" y="327.5" >commandP..</text>
+</g>
+<g >
+<title>siphash (860,465,336 cycles, 1.44%)</title><rect x="525.2" y="253" width="21.4" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="528.23" y="263.5" >s..</text>
+</g>
+<g >
+<title>sdsfree (1,685,748,018 cycles, 2.83%)</title><rect x="613.3" y="205" width="41.8" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="616.27" y="215.5" >sds..</text>
+</g>
+<g >
+<title>free_fastpath (339,390,686 cycles, 0.57%)</title><rect x="144.8" y="189" width="8.4" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="147.80" y="199.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (89,832,916 cycles, 0.15%)</title><rect x="1320.2" y="205" width="2.3" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="1323.22" y="215.5" ></text>
+</g>
+<g >
+<title>propagatePendingCommands (19,900,064 cycles, 0.03%)</title><rect x="253.4" y="269" width="0.5" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="256.37" y="279.5" ></text>
+</g>
+<g >
+<title>connSocketEventHandler (54,907,087,808 cycles, 92.16%)</title><rect x="119.3" y="413" width="1364.0" height="15.0" fill="rgb(244,183,43)" rx="2" ry="2" />
+<text  x="122.28" y="423.5" >connSocketEventHandler</text>
+</g>
+<g >
+<title>decrRefCount (3,121,105,296 cycles, 5.24%)</title><rect x="602.6" y="253" width="77.6" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="605.63" y="263.5" >decrRefC..</text>
+</g>
+<g >
+<title>tcache_alloc_small (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="189" width="0.2" height="15.0" fill="rgb(209,20,4)" rx="2" ry="2" />
+<text  x="1341.80" y="199.5" ></text>
+</g>
+<g >
+<title>tcache_dalloc_small (9,289,011 cycles, 0.02%)</title><rect x="188.2" y="205" width="0.2" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="191.19" y="215.5" ></text>
+</g>
+<g >
+<title>keyHashSlot (12,986,968,408 cycles, 21.80%)</title><rect x="868.2" y="301" width="322.7" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="871.25" y="311.5" >keyHashSlot</text>
+</g>
+<g >
+<title>ACLSelectorCheckCmd (109,751,745 cycles, 0.18%)</title><rect x="221.9" y="301" width="2.7" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="224.90" y="311.5" ></text>
+</g>
+<g >
+<title>imalloc_body (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="157" width="0.5" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="296.74" y="167.5" ></text>
+</g>
+<g >
+<title>imalloc_no_sample (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="141" width="0.5" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="296.74" y="151.5" ></text>
+</g>
+<g >
+<title>imalloc (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="269" width="0.2" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="1341.80" y="279.5" ></text>
+</g>
+<g >
+<title>afterCommand (79,657,850 cycles, 0.13%)</title><rect x="252.9" y="285" width="2.0" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="255.88" y="295.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCompare (69,970,020 cycles, 0.12%)</title><rect x="1484.3" y="509" width="1.7" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1487.29" y="519.5" ></text>
+</g>
+<g >
+<title>checkGoodReplicasStatus (29,950,211 cycles, 0.05%)</title><rect x="777.4" y="317" width="0.7" height="15.0" fill="rgb(229,112,26)" rx="2" ry="2" />
+<text  x="780.35" y="327.5" ></text>
+</g>
+<g >
+<title>atomic_load_p (19,793,508 cycles, 0.03%)</title><rect x="1319.7" y="189" width="0.5" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1322.73" y="199.5" ></text>
+</g>
+<g >
+<title>processCommand (41,947,327,835 cycles, 70.41%)</title><rect x="210.0" y="333" width="1042.1" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="213.02" y="343.5" >processCommand</text>
+</g>
+<g >
+<title>sz_size2index_lookup (20,038,278 cycles, 0.03%)</title><rect x="272.2" y="157" width="0.5" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="275.22" y="167.5" ></text>
+</g>
+<g >
+<title>dbOverwrite (2,045,226,955 cycles, 3.43%)</title><rect x="551.6" y="269" width="50.8" height="15.0" fill="rgb(237,150,36)" rx="2" ry="2" />
+<text  x="554.57" y="279.5" >dbOve..</text>
+</g>
+<g >
+<title>aeProcessEvents (55,465,336,009 cycles, 93.10%)</title><rect x="105.7" y="429" width="1377.8" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="108.66" y="439.5" >aeProcessEvents</text>
+</g>
+<g >
+<title>tsd_state_get (120,101,762 cycles, 0.20%)</title><rect x="207.0" y="189" width="3.0" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="210.03" y="199.5" ></text>
+</g>
+<g >
+<title>zfree (199,168,329 cycles, 0.33%)</title><rect x="753.3" y="269" width="5.0" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="756.30" y="279.5" ></text>
+</g>
+<g >
+<title>tsd_rtree_ctxp_get (9,908,699 cycles, 0.02%)</title><rect x="206.5" y="157" width="0.3" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="209.54" y="167.5" ></text>
+</g>
+<g >
+<title>tsd_rtree_ctxp_get_unsafe (9,908,699 cycles, 0.02%)</title><rect x="206.5" y="141" width="0.3" height="15.0" fill="rgb(241,167,40)" rx="2" ry="2" />
+<text  x="209.54" y="151.5" ></text>
+</g>
+<g >
+<title>strcasecmp@plt (20,173,510 cycles, 0.03%)</title><rect x="1488.5" y="509" width="0.5" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="1491.52" y="519.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (10,008,418 cycles, 0.02%)</title><rect x="1363.1" y="237" width="0.2" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="1366.08" y="247.5" ></text>
+</g>
+<g >
+<title>ticker_trytick (39,901,456 cycles, 0.07%)</title><rect x="683.4" y="237" width="1.0" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="686.38" y="247.5" ></text>
+</g>
+<g >
+<title>dictFind (9,959,973,809 cycles, 16.72%)</title><rect x="299.2" y="269" width="247.4" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="302.18" y="279.5" >dictFind</text>
+</g>
+<g >
+<title>removeExpire (2,774,946,718 cycles, 4.66%)</title><rect x="684.4" y="269" width="68.9" height="15.0" fill="rgb(227,102,24)" rx="2" ry="2" />
+<text  x="687.37" y="279.5" >removeE..</text>
+</g>
+<g >
+<title>rtree_read (59,888,969 cycles, 0.10%)</title><rect x="755.5" y="173" width="1.5" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="758.52" y="183.5" ></text>
+</g>
+<g >
+<title>decrRefCount (928,564,651 cycles, 1.56%)</title><rect x="140.1" y="269" width="23.1" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="143.10" y="279.5" >d..</text>
+</g>
+<g >
+<title>prepareClientToWrite (288,571,396 cycles, 0.48%)</title><rect x="287.6" y="269" width="7.1" height="15.0" fill="rgb(252,219,52)" rx="2" ry="2" />
+<text  x="290.56" y="279.5" ></text>
+</g>
+<g >
+<title>_addReplyToBufferOrList (10,012,189 cycles, 0.02%)</title><rect x="105.4" y="525" width="0.3" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="108.41" y="535.5" ></text>
+</g>
+<g >
+<title>monotonicGetType (19,930,663 cycles, 0.03%)</title><rect x="258.3" y="301" width="0.5" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="261.33" y="311.5" ></text>
+</g>
+<g >
+<title>cache_bin_alloc_easy (89,803,545 cycles, 0.15%)</title><rect x="1309.3" y="269" width="2.3" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="1312.34" y="279.5" ></text>
+</g>
+<g >
+<title>clientHasPendingReplies (29,894,880 cycles, 0.05%)</title><rect x="291.3" y="237" width="0.7" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="294.27" y="247.5" ></text>
+</g>
+<g >
+<title>isalloc (309,579,902 cycles, 0.52%)</title><rect x="1470.2" y="285" width="7.7" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1473.17" y="295.5" ></text>
+</g>
+<g >
+<title>_addReplyToBuffer (219,021,220 cycles, 0.37%)</title><rect x="279.6" y="253" width="5.5" height="15.0" fill="rgb(247,196,47)" rx="2" ry="2" />
+<text  x="282.65" y="263.5" ></text>
+</g>
+<g >
+<title>isInsideYieldingLongCommand (20,000,867 cycles, 0.03%)</title><rect x="1250.6" y="285" width="0.5" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="1253.59" y="295.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (130,046,359 cycles, 0.22%)</title><rect x="206.8" y="221" width="3.2" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="209.79" y="231.5" ></text>
+</g>
+<g >
+<title>cleanupACLKeyResultCache (20,002,250 cycles, 0.03%)</title><rect x="224.6" y="301" width="0.5" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="227.62" y="311.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (189,064,654 cycles, 0.32%)</title><rect x="663.1" y="93" width="4.7" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="666.08" y="103.5" ></text>
+</g>
+<g >
+<title>sdsResize (319,374,690 cycles, 0.54%)</title><rect x="267.0" y="237" width="7.9" height="15.0" fill="rgb(237,151,36)" rx="2" ry="2" />
+<text  x="270.01" y="247.5" ></text>
+</g>
+<g >
+<title>je_free (1,007,559,299 cycles, 1.69%)</title><rect x="163.2" y="269" width="25.0" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="166.16" y="279.5" >j..</text>
+</g>
+<g >
+<title>zmalloc (1,047,082,317 cycles, 1.76%)</title><rect x="1452.8" y="333" width="26.0" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="1455.84" y="343.5" >z..</text>
+</g>
+<g >
+<title>sdssetlen (19,899,863 cycles, 0.03%)</title><rect x="1479.8" y="333" width="0.5" height="15.0" fill="rgb(226,98,23)" rx="2" ry="2" />
+<text  x="1482.83" y="343.5" ></text>
+</g>
+<g >
+<title>cache_bin_dalloc_easy (9,946,745 cycles, 0.02%)</title><rect x="110.6" y="333" width="0.3" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="113.62" y="343.5" ></text>
+</g>
+<g >
+<title>keyIsExpired (59,684,522 cycles, 0.10%)</title><rect x="547.1" y="253" width="1.5" height="15.0" fill="rgb(216,51,12)" rx="2" ry="2" />
+<text  x="550.11" y="263.5" ></text>
+</g>
+<g >
+<title>processMultibulkBuffer (9,068,690,966 cycles, 15.22%)</title><rect x="1253.6" y="349" width="225.2" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="1256.56" y="359.5" >processMultibulkBuffer</text>
+</g>
+<g >
+<title>je_tcache_bin_flush_small (9,930,560 cycles, 0.02%)</title><rect x="1314.3" y="141" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1317.29" y="151.5" ></text>
+</g>
+<g >
+<title>incrRefCount (39,935,580 cycles, 0.07%)</title><rect x="680.2" y="269" width="1.0" height="15.0" fill="rgb(242,170,40)" rx="2" ry="2" />
+<text  x="683.16" y="279.5" ></text>
+</g>
+<g >
+<title>siphash (1,027,462,435 cycles, 1.72%)</title><rect x="727.8" y="237" width="25.5" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="730.78" y="247.5" >s..</text>
+</g>
+<g >
+<title>je_tcache_alloc_small_hard (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="77" width="0.5" height="15.0" fill="rgb(213,41,9)" rx="2" ry="2" />
+<text  x="296.74" y="87.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (39,916,346 cycles, 0.07%)</title><rect x="679.2" y="125" width="1.0" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="682.17" y="135.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_bits_read (39,487,148 cycles, 0.07%)</title><rect x="1346.7" y="205" width="1.0" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1349.74" y="215.5" ></text>
+</g>
+<g >
+<title>scriptIsRunning (20,000,867 cycles, 0.03%)</title><rect x="1250.6" y="253" width="0.5" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="1253.59" y="263.5" ></text>
+</g>
+<g >
+<title>je_tcache_event_hard (9,930,560 cycles, 0.02%)</title><rect x="1314.3" y="157" width="0.2" height="15.0" fill="rgb(248,197,47)" rx="2" ry="2" />
+<text  x="1317.29" y="167.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (59,888,969 cycles, 0.10%)</title><rect x="755.5" y="157" width="1.5" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="758.52" y="167.5" ></text>
+</g>
+<g >
+<title>getCommandFlags (69,579,280 cycles, 0.12%)</title><rect x="866.0" y="301" width="1.8" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="869.02" y="311.5" ></text>
+</g>
+<g >
+<title>imalloc (19,883,072 cycles, 0.03%)</title><rect x="1314.0" y="269" width="0.5" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="1317.04" y="279.5" ></text>
+</g>
+<g >
+<title>counts_index_for (29,819,480 cycles, 0.05%)</title><rect x="774.9" y="269" width="0.7" height="15.0" fill="rgb(246,188,45)" rx="2" ry="2" />
+<text  x="777.88" y="279.5" ></text>
+</g>
+<g >
+<title>setGetKeys (129,854,104 cycles, 0.22%)</title><rect x="1199.6" y="301" width="3.2" height="15.0" fill="rgb(246,192,46)" rx="2" ry="2" />
+<text  x="1202.56" y="311.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (19,899,623 cycles, 0.03%)</title><rect x="1337.3" y="253" width="0.5" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1340.31" y="263.5" ></text>
+</g>
+<g >
+<title>sdslen (29,652,418 cycles, 0.05%)</title><rect x="1478.8" y="349" width="0.8" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="1481.85" y="359.5" ></text>
+</g>
+<g >
+<title>trackingInvalidateKey (50,238,352 cycles, 0.08%)</title><rect x="758.3" y="285" width="1.2" height="15.0" fill="rgb(226,97,23)" rx="2" ry="2" />
+<text  x="761.25" y="295.5" ></text>
+</g>
+<g >
+<title>imalloc_no_sample (19,883,072 cycles, 0.03%)</title><rect x="1314.0" y="237" width="0.5" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="1317.04" y="247.5" ></text>
+</g>
+<g >
+<title>listRewind (20,130,006 cycles, 0.03%)</title><rect x="229.8" y="301" width="0.5" height="15.0" fill="rgb(209,21,5)" rx="2" ry="2" />
+<text  x="232.84" y="311.5" ></text>
+</g>
+<g >
+<title>dictFind (1,665,489,332 cycles, 2.80%)</title><rect x="1206.5" y="269" width="41.4" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="1209.49" y="279.5" >dic..</text>
+</g>
+<g >
+<title>getExpire (29,958,901 cycles, 0.05%)</title><rect x="547.8" y="237" width="0.8" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="550.85" y="247.5" ></text>
+</g>
+<g >
+<title>decrRefCount (3,131,046,228 cycles, 5.26%)</title><rect x="602.4" y="269" width="77.8" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="605.38" y="279.5" >decrRefC..</text>
+</g>
+<g >
+<title>isSafeToPerformEvictions (39,846,889 cycles, 0.07%)</title><rect x="1250.1" y="301" width="1.0" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="1253.10" y="311.5" ></text>
+</g>
+<g >
+<title>dictFind (2,674,005,737 cycles, 4.49%)</title><rect x="686.9" y="253" width="66.4" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="689.88" y="263.5" >dictFind</text>
+</g>
+<g >
+<title>rtree_read (159,093,816 cycles, 0.27%)</title><rect x="1347.7" y="221" width="4.0" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1350.72" y="231.5" ></text>
+</g>
+<g >
+<title>rtree_szind_read (139,723,662 cycles, 0.23%)</title><rect x="1470.2" y="253" width="3.4" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1473.17" y="263.5" ></text>
+</g>
+<g >
+<title>iallocztm (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="221" width="0.2" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1341.80" y="231.5" ></text>
+</g>
+<g >
+<title>call (21,620,536,167 cycles, 36.29%)</title><rect x="240.2" y="317" width="537.2" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="243.25" y="327.5" >call</text>
+</g>
+<g >
+<title>setKey (8,359,730,555 cycles, 14.03%)</title><rect x="550.6" y="285" width="207.7" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="553.58" y="295.5" >setKey</text>
+</g>
+<g >
+<title>tsd_fetch_impl (19,959,763 cycles, 0.03%)</title><rect x="271.5" y="189" width="0.5" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="274.48" y="199.5" ></text>
+</g>
+<g >
+<title>je_free (9,946,745 cycles, 0.02%)</title><rect x="110.6" y="365" width="0.3" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="113.62" y="375.5" ></text>
+</g>
+<g >
+<title>arena_salloc (9,916,296 cycles, 0.02%)</title><rect x="294.5" y="157" width="0.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="297.48" y="167.5" ></text>
+</g>
+<g >
+<title>getCommandFlags (19,937,634 cycles, 0.03%)</title><rect x="779.6" y="317" width="0.5" height="15.0" fill="rgb(220,70,16)" rx="2" ry="2" />
+<text  x="782.58" y="327.5" ></text>
+</g>
+<g >
+<title>iallocztm (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="237" width="0.2" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1468.95" y="247.5" ></text>
+</g>
+<g >
+<title>shouldPropagate (19,914,953 cycles, 0.03%)</title><rect x="257.1" y="285" width="0.5" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="260.09" y="295.5" ></text>
+</g>
+<g >
+<title>freeClientsInAsyncFreeQueue (10,004,285 cycles, 0.02%)</title><rect x="109.1" y="397" width="0.3" height="15.0" fill="rgb(239,157,37)" rx="2" ry="2" />
+<text  x="112.13" y="407.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (9,976,715 cycles, 0.02%)</title><rect x="1403.7" y="221" width="0.3" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1406.74" y="231.5" ></text>
+</g>
+<g >
+<title>sz_index2size (9,916,296 cycles, 0.02%)</title><rect x="294.5" y="141" width="0.2" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="297.48" y="151.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (19,779,179 cycles, 0.03%)</title><rect x="1326.9" y="237" width="0.5" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="1329.92" y="247.5" ></text>
+</g>
+<g >
+<title>iallocztm (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="125" width="0.5" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="296.74" y="135.5" ></text>
+</g>
+<g >
+<title>sdslen (29,988,558 cycles, 0.05%)</title><rect x="294.7" y="269" width="0.8" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="297.73" y="279.5" ></text>
+</g>
+<g >
+<title>iallocztm (19,883,072 cycles, 0.03%)</title><rect x="1314.0" y="221" width="0.5" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="1317.04" y="231.5" ></text>
+</g>
+<g >
+<title>je_malloc (278,903,804 cycles, 0.47%)</title><rect x="1331.9" y="285" width="6.9" height="15.0" fill="rgb(230,115,27)" rx="2" ry="2" />
+<text  x="1334.87" y="295.5" ></text>
+</g>
+<g >
+<title>aeMain (55,465,336,009 cycles, 93.10%)</title><rect x="105.7" y="461" width="1377.8" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="108.66" y="471.5" >aeMain</text>
+</g>
+<g >
+<title>sdsReqType (30,033,336 cycles, 0.05%)</title><rect x="273.0" y="221" width="0.7" height="15.0" fill="rgb(219,66,15)" rx="2" ry="2" />
+<text  x="275.97" y="231.5" ></text>
+</g>
+<g >
+<title>je_free (339,390,686 cycles, 0.57%)</title><rect x="144.8" y="205" width="8.4" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="147.80" y="215.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (369,616,380 cycles, 0.62%)</title><rect x="1351.7" y="221" width="9.2" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1354.67" y="231.5" ></text>
+</g>
+<g >
+<title>ACLCheckAllUserCommandPerm (379,711,479 cycles, 0.64%)</title><rect x="220.9" y="317" width="9.4" height="15.0" fill="rgb(234,137,32)" rx="2" ry="2" />
+<text  x="223.91" y="327.5" ></text>
+</g>
+<g >
+<title>sz_index2size (199,529,093 cycles, 0.33%)</title><rect x="201.6" y="189" width="4.9" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="204.59" y="199.5" ></text>
+</g>
+<g >
+<title>cache_bin_alloc_easy (109,635,788 cycles, 0.18%)</title><rect x="1334.6" y="269" width="2.7" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="1337.59" y="279.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (459,574,083 cycles, 0.77%)</title><rect x="1429.3" y="189" width="11.4" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1432.28" y="199.5" ></text>
+</g>
+<g >
+<title>freeStringObject (769,294,352 cycles, 1.29%)</title><rect x="144.1" y="221" width="19.1" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="147.05" y="231.5" ></text>
+</g>
+<g >
+<title>serverCron (10,026,505 cycles, 0.02%)</title><rect x="1483.3" y="397" width="0.2" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="1486.30" y="407.5" ></text>
+</g>
+<g >
+<title>zfree (817,483,045 cycles, 1.37%)</title><rect x="659.9" y="189" width="20.3" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="662.85" y="199.5" ></text>
+</g>
+<g >
+<title>ztrymalloc_usable_internal (69,705,706 cycles, 0.12%)</title><rect x="293.0" y="205" width="1.7" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="296.00" y="215.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (289,987,790 cycles, 0.49%)</title><rect x="586.3" y="221" width="7.2" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="589.26" y="231.5" ></text>
+</g>
+<g >
+<title>sdslen (49,585,304 cycles, 0.08%)</title><rect x="273.7" y="221" width="1.2" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="276.72" y="231.5" ></text>
+</g>
+<g >
+<title>trackingHandlePendingKeyInvalidations (10,033,339 cycles, 0.02%)</title><rect x="1251.1" y="317" width="0.2" height="15.0" fill="rgb(251,213,51)" rx="2" ry="2" />
+<text  x="1254.09" y="327.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (10,023,994 cycles, 0.02%)</title><rect x="272.7" y="205" width="0.3" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="275.72" y="215.5" ></text>
+</g>
+<g >
+<title>rtree_read (129,773,121 cycles, 0.22%)</title><rect x="1470.4" y="237" width="3.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1473.41" y="247.5" ></text>
+</g>
+<g >
+<title>cache_bin_alloc_easy (19,994,664 cycles, 0.03%)</title><rect x="293.2" y="173" width="0.5" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="296.25" y="183.5" ></text>
+</g>
+<g >
+<title>ztrymalloc_usable_internal (827,341,840 cycles, 1.39%)</title><rect x="1306.9" y="301" width="20.5" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1309.86" y="311.5" ></text>
+</g>
+<g >
+<title>imalloc_no_sample (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="237" width="0.2" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="1341.80" y="247.5" ></text>
+</g>
+<g >
+<title>siphash_nocase (159,671,392 cycles, 0.27%)</title><rect x="1243.9" y="253" width="4.0" height="15.0" fill="rgb(252,220,52)" rx="2" ry="2" />
+<text  x="1246.90" y="263.5" ></text>
+</g>
+<g >
+<title>je_tcache_bin_flush_small (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="157" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1468.95" y="167.5" ></text>
+</g>
+<g >
+<title>isalloc (279,330,751 cycles, 0.47%)</title><rect x="199.8" y="221" width="7.0" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="202.85" y="231.5" ></text>
+</g>
+<g >
+<title>tcache_alloc_small (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="93" width="0.5" height="15.0" fill="rgb(209,20,4)" rx="2" ry="2" />
+<text  x="296.74" y="103.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (739,383,187 cycles, 1.24%)</title><rect x="191.7" y="237" width="18.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="194.65" y="247.5" ></text>
+</g>
+<g >
+<title>je_malloc_default (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="301" width="0.2" height="15.0" fill="rgb(229,112,27)" rx="2" ry="2" />
+<text  x="1468.95" y="311.5" ></text>
+</g>
+<g >
+<title>cache_bin_dalloc_easy (418,618,525 cycles, 0.70%)</title><rect x="175.3" y="237" width="10.4" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="178.31" y="247.5" ></text>
+</g>
+<g >
+<title>dictSdsHash (89,922,846 cycles, 0.15%)</title><rect x="427.4" y="253" width="2.3" height="15.0" fill="rgb(218,63,15)" rx="2" ry="2" />
+<text  x="430.45" y="263.5" ></text>
+</g>
+<g >
+<title>zmalloc (1,296,410,713 cycles, 2.18%)</title><rect x="1331.1" y="317" width="32.2" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="1334.12" y="327.5" >zm..</text>
+</g>
+<g >
+<title>zfree (319,775,225 cycles, 0.54%)</title><rect x="155.2" y="189" width="8.0" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="158.22" y="199.5" ></text>
+</g>
+<g >
+<title>ifree (9,289,011 cycles, 0.02%)</title><rect x="188.2" y="253" width="0.2" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="191.19" y="263.5" ></text>
+</g>
+<g >
+<title>initACLKeyResultCache (30,108,435 cycles, 0.05%)</title><rect x="225.1" y="301" width="0.8" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="228.12" y="311.5" ></text>
+</g>
+<g >
+<title>je_tcache_bin_flush_small (10,036,131 cycles, 0.02%)</title><rect x="153.5" y="189" width="0.2" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="156.48" y="199.5" ></text>
+</g>
+<g >
+<title>strchr@plt (29,712,273 cycles, 0.05%)</title><rect x="1489.0" y="509" width="0.8" height="15.0" fill="rgb(253,221,52)" rx="2" ry="2" />
+<text  x="1492.02" y="519.5" ></text>
+</g>
+<g >
+<title>clusterCron (10,026,505 cycles, 0.02%)</title><rect x="1483.3" y="381" width="0.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="1486.30" y="391.5" ></text>
+</g>
+<g >
+<title>freeClientOriginalArgv (29,916,424 cycles, 0.05%)</title><rect x="257.6" y="301" width="0.7" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="260.58" y="311.5" ></text>
+</g>
+<g >
+<title>arena_dalloc_bin_locked_impl (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="125" width="0.2" height="15.0" fill="rgb(212,33,7)" rx="2" ry="2" />
+<text  x="1468.95" y="135.5" ></text>
+</g>
+<g >
+<title>getClientType (29,851,478 cycles, 0.05%)</title><rect x="292.0" y="237" width="0.8" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="295.01" y="247.5" ></text>
+</g>
+<g >
+<title>isalloc (59,888,969 cycles, 0.10%)</title><rect x="755.5" y="221" width="1.5" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="758.52" y="231.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (378,866,907 cycles, 0.64%)</title><rect x="230.3" y="317" width="9.5" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="233.34" y="327.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (80,018,765 cycles, 0.13%)</title><rect x="270.0" y="221" width="2.0" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="272.99" y="231.5" ></text>
+</g>
+<g >
+<title>lookupCommandLogic (1,734,870,356 cycles, 2.91%)</title><rect x="1204.8" y="301" width="43.1" height="15.0" fill="rgb(228,109,26)" rx="2" ry="2" />
+<text  x="1207.77" y="311.5" >look..</text>
+</g>
+<g >
+<title>sdslen (39,740,576 cycles, 0.07%)</title><rect x="726.8" y="221" width="1.0" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="729.79" y="231.5" ></text>
+</g>
+<g >
+<title>getClientType (19,915,363 cycles, 0.03%)</title><rect x="118.0" y="349" width="0.5" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="121.05" y="359.5" ></text>
+</g>
+<g >
+<title>ticker_trytick (9,966,689 cycles, 0.02%)</title><rect x="1338.3" y="269" width="0.3" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1341.30" y="279.5" ></text>
+</g>
+<g >
+<title>arena_salloc (130,031,096 cycles, 0.22%)</title><rect x="159.2" y="141" width="3.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="162.19" y="151.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (29,938,743 cycles, 0.05%)</title><rect x="1311.6" y="253" width="0.7" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1314.57" y="263.5" ></text>
+</g>
+<g >
+<title>listNext (9,985,089 cycles, 0.02%)</title><rect x="110.9" y="381" width="0.2" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="113.87" y="391.5" ></text>
+</g>
+<g >
+<title>commandCheckArity (59,844,102 cycles, 0.10%)</title><rect x="778.1" y="317" width="1.5" height="15.0" fill="rgb(212,32,7)" rx="2" ry="2" />
+<text  x="781.10" y="327.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_bits_read (49,798,951 cycles, 0.08%)</title><rect x="661.8" y="93" width="1.3" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="664.84" y="103.5" ></text>
+</g>
+<g >
+<title>[unknown] (119,763,265 cycles, 0.20%)</title><rect x="115.1" y="269" width="2.9" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="118.07" y="279.5" ></text>
+</g>
+<g >
+<title>slowlogPushEntryIfNeeded (40,055,340 cycles, 0.07%)</title><rect x="761.0" y="269" width="1.0" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="763.98" y="279.5" ></text>
+</g>
+<g >
+<title>inallocx (20,038,278 cycles, 0.03%)</title><rect x="272.2" y="205" width="0.5" height="15.0" fill="rgb(220,73,17)" rx="2" ry="2" />
+<text  x="275.22" y="215.5" ></text>
+</g>
+<g >
+<title>setCommand (698,929,595 cycles, 1.17%)</title><rect x="258.8" y="301" width="17.4" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="261.82" y="311.5" ></text>
+</g>
+<g >
+<title>free_fastpath (408,350,684 cycles, 0.69%)</title><rect x="603.1" y="189" width="10.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="606.13" y="199.5" ></text>
+</g>
+<g >
+<title>ticker_fixup (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="125" width="0.2" height="15.0" fill="rgb(210,27,6)" rx="2" ry="2" />
+<text  x="1341.80" y="135.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (1,178,329,715 cycles, 1.98%)</title><rect x="1412.4" y="253" width="29.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="1415.41" y="263.5" >je..</text>
+</g>
+<g >
+<title>tsdn_fetch (29,917,748 cycles, 0.05%)</title><rect x="162.4" y="157" width="0.8" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="165.42" y="167.5" ></text>
+</g>
+<g >
+<title>ctl_refresh (10,031,456 cycles, 0.02%)</title><rect x="1484.0" y="525" width="0.3" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="1487.04" y="535.5" ></text>
+</g>
+<g >
+<title>atomic_load_p (69,893,503 cycles, 0.12%)</title><rect x="1421.8" y="157" width="1.8" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1424.84" y="167.5" ></text>
+</g>
+<g >
+<title>arena_salloc (758,817,304 cycles, 1.27%)</title><rect x="1421.8" y="221" width="18.9" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="1424.84" y="231.5" ></text>
+</g>
+<g >
+<title>je_malloc (1,168,251,662 cycles, 1.96%)</title><rect x="1383.4" y="253" width="29.0" height="15.0" fill="rgb(230,115,27)" rx="2" ry="2" />
+<text  x="1386.39" y="263.5" >je..</text>
+</g>
+<g >
+<title>rtree_leaf_elm_bits_read (69,893,503 cycles, 0.12%)</title><rect x="1421.8" y="173" width="1.8" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1424.84" y="183.5" ></text>
+</g>
+<g >
+<title>dictDelete (91,012,378 cycles, 0.15%)</title><rect x="684.6" y="253" width="2.3" height="15.0" fill="rgb(206,8,1)" rx="2" ry="2" />
+<text  x="687.61" y="263.5" ></text>
+</g>
+<g >
+<title>decrRefCount (818,879,276 cycles, 1.37%)</title><rect x="142.8" y="253" width="20.4" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="145.82" y="263.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (159,338,780 cycles, 0.27%)</title><rect x="281.1" y="237" width="4.0" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="284.13" y="247.5" ></text>
+</g>
+<g >
+<title>lookupKey (49,659,255 cycles, 0.08%)</title><rect x="1487.3" y="525" width="1.2" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="1490.28" y="535.5" ></text>
+</g>
+<g >
+<title>readQueryFromClient (54,777,782,488 cycles, 91.95%)</title><rect x="122.5" y="381" width="1360.8" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="125.49" y="391.5" >readQueryFromClient</text>
+</g>
+<g >
+<title>zmalloc_usable (2,496,179,586 cycles, 4.19%)</title><rect x="1379.7" y="285" width="62.0" height="15.0" fill="rgb(220,71,17)" rx="2" ry="2" />
+<text  x="1382.68" y="295.5" >zmallo..</text>
+</g>
+<g >
+<title>postponeClientRead (9,878,088 cycles, 0.02%)</title><rect x="130.9" y="365" width="0.3" height="15.0" fill="rgb(251,212,50)" rx="2" ry="2" />
+<text  x="133.94" y="375.5" ></text>
+</g>
+<g >
+<title>sdslen (89,922,846 cycles, 0.15%)</title><rect x="427.4" y="237" width="2.3" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="430.45" y="247.5" ></text>
+</g>
+<g >
+<title>isalloc (269,497,096 cycles, 0.45%)</title><rect x="1319.7" y="269" width="6.7" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1322.73" y="279.5" ></text>
+</g>
+<g >
+<title>je_free_default (9,289,011 cycles, 0.02%)</title><rect x="188.2" y="269" width="0.2" height="15.0" fill="rgb(211,32,7)" rx="2" ry="2" />
+<text  x="191.19" y="279.5" ></text>
+</g>
+<g >
+<title>scriptIsRunning (20,038,888 cycles, 0.03%)</title><rect x="1204.3" y="285" width="0.5" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="1207.27" y="295.5" ></text>
+</g>
+<g >
+<title>beforeNextClient (10,043,106 cycles, 0.02%)</title><rect x="126.5" y="349" width="0.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="129.46" y="359.5" ></text>
+</g>
+<g >
+<title>atomic_load_p (49,798,951 cycles, 0.08%)</title><rect x="661.8" y="77" width="1.3" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="664.84" y="87.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (30,059,681 cycles, 0.05%)</title><rect x="1411.7" y="221" width="0.7" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="1414.67" y="231.5" ></text>
+</g>
+<g >
+<title>je_free (129,353,072 cycles, 0.22%)</title><rect x="681.2" y="269" width="3.2" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="684.15" y="279.5" ></text>
+</g>
+<g >
+<title>tryObjectEncoding (508,975,686 cycles, 0.85%)</title><rect x="263.5" y="285" width="12.7" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="266.54" y="295.5" ></text>
+</g>
+<g >
+<title>zfree (859,212,775 cycles, 1.44%)</title><rect x="188.7" y="269" width="21.3" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="191.67" y="279.5" >z..</text>
+</g>
+<g >
+<title>rtree_szind_read (39,899,688 cycles, 0.07%)</title><rect x="159.2" y="125" width="1.0" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="162.19" y="135.5" ></text>
+</g>
+<g >
+<title>sdslen (10,019,379 cycles, 0.02%)</title><rect x="1479.6" y="333" width="0.2" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="1482.58" y="343.5" ></text>
+</g>
+<g >
+<title>processCommand (20,173,510 cycles, 0.03%)</title><rect x="1488.5" y="525" width="0.5" height="15.0" fill="rgb(217,57,13)" rx="2" ry="2" />
+<text  x="1491.52" y="535.5" ></text>
+</g>
+<g >
+<title>rtree_read (189,064,654 cycles, 0.32%)</title><rect x="663.1" y="109" width="4.7" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="666.08" y="119.5" ></text>
+</g>
+<g >
+<title>strcasecmp@plt (30,040,561 cycles, 0.05%)</title><rect x="1486.0" y="493" width="0.8" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="1489.03" y="503.5" ></text>
+</g>
+<g >
+<title>cache_bin_alloc_easy (9,952,512 cycles, 0.02%)</title><rect x="1314.0" y="173" width="0.3" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="1317.04" y="183.5" ></text>
+</g>
+<g >
+<title>imalloc (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="173" width="0.5" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="296.74" y="183.5" ></text>
+</g>
+<g >
+<title>rtree_read (40,110,059 cycles, 0.07%)</title><rect x="270.5" y="157" width="1.0" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="273.49" y="167.5" ></text>
+</g>
+<g >
+<title>sdsRemoveFreeSpace (40,063,829 cycles, 0.07%)</title><rect x="266.0" y="237" width="1.0" height="15.0" fill="rgb(241,169,40)" rx="2" ry="2" />
+<text  x="269.02" y="247.5" ></text>
+</g>
+<g >
+<title>isalloc (568,197,344 cycles, 0.95%)</title><rect x="1346.7" y="269" width="14.2" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1349.74" y="279.5" ></text>
+</g>
+<g >
+<title>freeClientArgv (2,844,554,144 cycles, 4.77%)</title><rect x="139.4" y="285" width="70.6" height="15.0" fill="rgb(208,14,3)" rx="2" ry="2" />
+<text  x="142.35" y="295.5" >freeCli..</text>
+</g>
+<g >
+<title>tsdn_rtree_ctx (9,908,699 cycles, 0.02%)</title><rect x="206.5" y="189" width="0.3" height="15.0" fill="rgb(246,189,45)" rx="2" ry="2" />
+<text  x="209.54" y="199.5" ></text>
+</g>
+<g >
+<title>zmalloc (877,109,093 cycles, 1.47%)</title><rect x="1305.6" y="317" width="21.8" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="1308.62" y="327.5" >z..</text>
+</g>
+<g >
+<title>sz_index2size (459,574,083 cycles, 0.77%)</title><rect x="1429.3" y="205" width="11.4" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1432.28" y="215.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (49,956,480 cycles, 0.08%)</title><rect x="757.0" y="189" width="1.3" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="760.01" y="199.5" ></text>
+</g>
+<g >
+<title>updateClientMemUsageAndBucket (59,345,468 cycles, 0.10%)</title><rect x="1252.1" y="333" width="1.5" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="1255.09" y="343.5" ></text>
+</g>
+<g >
+<title>listNext (159,830,330 cycles, 0.27%)</title><rect x="225.9" y="301" width="3.9" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="228.87" y="311.5" ></text>
+</g>
+<g >
+<title>je_malloc_default (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="189" width="0.5" height="15.0" fill="rgb(229,112,27)" rx="2" ry="2" />
+<text  x="296.74" y="199.5" ></text>
+</g>
+<g >
+<title>scriptIsTimedout (69,942,504 cycles, 0.12%)</title><rect x="1203.0" y="301" width="1.8" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1206.03" y="311.5" ></text>
+</g>
+<g >
+<title>memcpy@plt (10,012,189 cycles, 0.02%)</title><rect x="105.4" y="477" width="0.3" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="108.41" y="487.5" ></text>
+</g>
+<g >
+<title>trackingHandlePendingKeyInvalidations (40,001,106 cycles, 0.07%)</title><rect x="253.9" y="269" width="1.0" height="15.0" fill="rgb(251,213,51)" rx="2" ry="2" />
+<text  x="256.87" y="279.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCaseCompare (30,040,561 cycles, 0.05%)</title><rect x="1486.0" y="509" width="0.8" height="15.0" fill="rgb(209,18,4)" rx="2" ry="2" />
+<text  x="1489.03" y="519.5" ></text>
+</g>
+<g >
+<title>rtree_szind_read (109,626,424 cycles, 0.18%)</title><rect x="1319.7" y="237" width="2.8" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1322.73" y="247.5" ></text>
+</g>
+<g >
+<title>ztrymalloc_usable_internal (2,356,721,997 cycles, 3.96%)</title><rect x="1383.1" y="269" width="58.6" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1386.14" y="279.5" >ztryma..</text>
+</g>
+<g >
+<title>tcache_alloc_small (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="205" width="0.2" height="15.0" fill="rgb(209,20,4)" rx="2" ry="2" />
+<text  x="1468.95" y="215.5" ></text>
+</g>
+<g >
+<title>cache_bin_dalloc_easy (9,289,011 cycles, 0.02%)</title><rect x="188.2" y="189" width="0.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="191.19" y="199.5" ></text>
+</g>
+<g >
+<title>je_malloc_default (29,753,432 cycles, 0.05%)</title><rect x="1313.8" y="285" width="0.7" height="15.0" fill="rgb(229,112,27)" rx="2" ry="2" />
+<text  x="1316.79" y="295.5" ></text>
+</g>
+<g >
+<title>performEvictions (109,736,668 cycles, 0.18%)</title><rect x="1248.4" y="317" width="2.7" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="1251.37" y="327.5" ></text>
+</g>
+<g >
+<title>tsd_fast (30,059,681 cycles, 0.05%)</title><rect x="1411.7" y="237" width="0.7" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="1414.67" y="247.5" ></text>
+</g>
+<g >
+<title>rtree_szind_slab_read_fast (49,790,152 cycles, 0.08%)</title><rect x="612.0" y="173" width="1.3" height="15.0" fill="rgb(226,98,23)" rx="2" ry="2" />
+<text  x="615.03" y="183.5" ></text>
+</g>
+<g >
+<title>aeProcessEvents (55,465,336,009 cycles, 93.10%)</title><rect x="105.7" y="445" width="1377.8" height="15.0" fill="rgb(223,83,20)" rx="2" ry="2" />
+<text  x="108.66" y="455.5" >aeProcessEvents</text>
+</g>
+<g >
+<title>[libc.so.6] (398,704,042 cycles, 0.67%)</title><rect x="1234.0" y="237" width="9.9" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="1236.99" y="247.5" ></text>
+</g>
+<g >
+<title>rtree_szind_slab_read_fast (29,980,371 cycles, 0.05%)</title><rect x="185.7" y="237" width="0.8" height="15.0" fill="rgb(226,98,23)" rx="2" ry="2" />
+<text  x="188.71" y="247.5" ></text>
+</g>
+<g >
+<title>free_fastpath (9,946,745 cycles, 0.02%)</title><rect x="110.6" y="349" width="0.3" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="113.62" y="359.5" ></text>
+</g>
+<g >
+<title>rtree_szind_read (69,892,959 cycles, 0.12%)</title><rect x="199.8" y="189" width="1.8" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="202.85" y="199.5" ></text>
+</g>
+<g >
+<title>imalloc_body (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="269" width="0.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1468.95" y="279.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (518,471,144 cycles, 0.87%)</title><rect x="1314.5" y="285" width="12.9" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="1317.53" y="295.5" ></text>
+</g>
+<g >
+<title>all (59,575,835,441 cycles, 100%)</title><rect x="10.0" y="557" width="1480.0" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="13.00" y="567.5" ></text>
+</g>
+<g >
+<title>hdr_record_values (569,193,917 cycles, 0.96%)</title><rect x="762.5" y="285" width="14.1" height="15.0" fill="rgb(216,52,12)" rx="2" ry="2" />
+<text  x="765.47" y="295.5" ></text>
+</g>
+<g >
+<title>moduleNotifyKeyUnlink (29,953,615 cycles, 0.05%)</title><rect x="601.6" y="253" width="0.8" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="604.64" y="263.5" ></text>
+</g>
+<g >
+<title>dbOverwrite (69,970,020 cycles, 0.12%)</title><rect x="1484.3" y="525" width="1.7" height="15.0" fill="rgb(237,150,36)" rx="2" ry="2" />
+<text  x="1487.29" y="535.5" ></text>
+</g>
+<g >
+<title>ACLCheckAllPerm (19,926,593 cycles, 0.03%)</title><rect x="220.4" y="317" width="0.5" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="223.41" y="327.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (19,956,200 cycles, 0.03%)</title><rect x="294.2" y="189" width="0.5" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="297.23" y="199.5" ></text>
+</g>
+<g >
+<title>sdslen (19,937,878 cycles, 0.03%)</title><rect x="264.8" y="269" width="0.5" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="267.78" y="279.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (169,971,360 cycles, 0.29%)</title><rect x="126.7" y="333" width="4.2" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="129.71" y="343.5" ></text>
+</g>
+<g >
+<title>freeStringObject (3,101,025,617 cycles, 5.21%)</title><rect x="603.1" y="237" width="77.1" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="606.13" y="247.5" >freeStri..</text>
+</g>
+<g >
+<title>tsdn_fetch (39,916,346 cycles, 0.07%)</title><rect x="679.2" y="157" width="1.0" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="682.17" y="167.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (169,856,240 cycles, 0.29%)</title><rect x="1473.6" y="237" width="4.3" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1476.64" y="247.5" ></text>
+</g>
+<g >
+<title>rtree_read (39,899,688 cycles, 0.07%)</title><rect x="159.2" y="109" width="1.0" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="162.19" y="119.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (817,483,045 cycles, 1.37%)</title><rect x="659.9" y="173" width="20.3" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="662.85" y="183.5" ></text>
+</g>
+<g >
+<title>createObject (1,445,844,197 cycles, 2.43%)</title><rect x="1327.4" y="333" width="35.9" height="15.0" fill="rgb(237,148,35)" rx="2" ry="2" />
+<text  x="1330.41" y="343.5" >cre..</text>
+</g>
+<g >
+<title>writeCommandsDeniedByDiskError (29,992,961 cycles, 0.05%)</title><rect x="1251.3" y="317" width="0.8" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1254.34" y="327.5" ></text>
+</g>
+<g >
+<title>notifyKeyspaceEvent (79,992,340 cycles, 0.13%)</title><rect x="548.6" y="285" width="2.0" height="15.0" fill="rgb(243,178,42)" rx="2" ry="2" />
+<text  x="551.59" y="295.5" ></text>
+</g>
+<g >
+<title>je_malloc (279,117,264 cycles, 0.47%)</title><rect x="1306.9" y="285" width="6.9" height="15.0" fill="rgb(230,115,27)" rx="2" ry="2" />
+<text  x="1309.86" y="295.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (19,959,763 cycles, 0.03%)</title><rect x="271.5" y="205" width="0.5" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="274.48" y="215.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (119,763,265 cycles, 0.20%)</title><rect x="115.1" y="317" width="2.9" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="118.07" y="327.5" ></text>
+</g>
+<g >
+<title>[unknown] (119,763,265 cycles, 0.20%)</title><rect x="115.1" y="285" width="2.9" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="118.07" y="295.5" ></text>
+</g>
+<g >
+<title>getNodeByQuery (20,307,459 cycles, 0.03%)</title><rect x="1486.8" y="525" width="0.5" height="15.0" fill="rgb(219,66,15)" rx="2" ry="2" />
+<text  x="1489.78" y="535.5" ></text>
+</g>
+<g >
+<title>getClientType (9,962,261 cycles, 0.02%)</title><rect x="285.1" y="269" width="0.2" height="15.0" fill="rgb(224,91,21)" rx="2" ry="2" />
+<text  x="288.09" y="279.5" ></text>
+</g>
+<g >
+<title>memcmp@plt (69,970,020 cycles, 0.12%)</title><rect x="1484.3" y="493" width="1.7" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="1487.29" y="503.5" ></text>
+</g>
+<g >
+<title>string2ll (388,586,060 cycles, 0.65%)</title><rect x="1443.2" y="333" width="9.6" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="1446.18" y="343.5" ></text>
+</g>
+<g >
+<title>siphash (268,917,433 cycles, 0.45%)</title><rect x="595.0" y="237" width="6.6" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="597.96" y="247.5" ></text>
+</g>
+<g >
+<title>arena_malloc (19,883,072 cycles, 0.03%)</title><rect x="1314.0" y="205" width="0.5" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1317.04" y="215.5" ></text>
+</g>
+<g >
+<title>malloc_mutex_trylock_final (10,036,131 cycles, 0.02%)</title><rect x="153.5" y="157" width="0.2" height="15.0" fill="rgb(217,59,14)" rx="2" ry="2" />
+<text  x="156.48" y="167.5" ></text>
+</g>
+<g >
+<title>atomic_load_p (9,950,541 cycles, 0.02%)</title><rect x="1470.2" y="205" width="0.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1473.17" y="215.5" ></text>
+</g>
+<g >
+<title>afterCommand (79,657,850 cycles, 0.13%)</title><rect x="252.9" y="301" width="2.0" height="15.0" fill="rgb(248,200,47)" rx="2" ry="2" />
+<text  x="255.88" y="311.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (39,905,705 cycles, 0.07%)</title><rect x="1440.7" y="237" width="1.0" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="1443.70" y="247.5" ></text>
+</g>
+<g >
+<title>[unknown] (169,971,360 cycles, 0.29%)</title><rect x="126.7" y="317" width="4.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="129.71" y="327.5" ></text>
+</g>
+<g >
+<title>sz_index2size (19,899,623 cycles, 0.03%)</title><rect x="1337.3" y="269" width="0.5" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1340.31" y="279.5" ></text>
+</g>
+<g >
+<title>sdslen (9,961,854 cycles, 0.02%)</title><rect x="1233.5" y="237" width="0.2" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="1236.50" y="247.5" ></text>
+</g>
+<g >
+<title>sdslen (349,582,388 cycles, 0.59%)</title><rect x="1190.9" y="301" width="8.7" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="1193.87" y="311.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (867,466,276 cycles, 1.46%)</title><rect x="1278.9" y="333" width="21.5" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="1281.88" y="343.5" >[..</text>
+</g>
+<g >
+<title>zmalloc (69,705,706 cycles, 0.12%)</title><rect x="293.0" y="221" width="1.7" height="15.0" fill="rgb(242,173,41)" rx="2" ry="2" />
+<text  x="296.00" y="231.5" ></text>
+</g>
+<g >
+<title>moduleNotifyKeyspaceEvent (30,034,847 cycles, 0.05%)</title><rect x="549.8" y="269" width="0.8" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="552.83" y="279.5" ></text>
+</g>
+<g >
+<title>rtree_read (229,349,718 cycles, 0.38%)</title><rect x="1423.6" y="189" width="5.7" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1426.58" y="199.5" ></text>
+</g>
+<g >
+<title>setGenericCommand (19,455,293,266 cycles, 32.66%)</title><rect x="276.2" y="301" width="483.3" height="15.0" fill="rgb(249,203,48)" rx="2" ry="2" />
+<text  x="279.19" y="311.5" >setGenericCommand</text>
+</g>
+<g >
+<title>mustObeyClient (10,067,397 cycles, 0.02%)</title><rect x="1248.1" y="317" width="0.3" height="15.0" fill="rgb(212,35,8)" rx="2" ry="2" />
+<text  x="1251.12" y="327.5" ></text>
+</g>
+<g >
+<title>tcache_event (9,930,560 cycles, 0.02%)</title><rect x="1314.3" y="173" width="0.2" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1317.29" y="183.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (55,465,336,009 cycles, 93.10%)</title><rect x="105.7" y="493" width="1377.8" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="108.66" y="503.5" >[libc.so.6]</text>
+</g>
+<g >
+<title>cache_bin_alloc_easy (209,240,697 cycles, 0.35%)</title><rect x="1458.0" y="285" width="5.2" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="1461.04" y="295.5" ></text>
+</g>
+<g >
+<title>sdsrange (10,019,379 cycles, 0.02%)</title><rect x="1479.6" y="349" width="0.2" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="1482.58" y="359.5" ></text>
+</g>
+<g >
+<title>_sdsnewlen (3,104,373,757 cycles, 5.21%)</title><rect x="1364.6" y="301" width="77.1" height="15.0" fill="rgb(225,94,22)" rx="2" ry="2" />
+<text  x="1367.57" y="311.5" >_sdsnewlen</text>
+</g>
+<g >
+<title>imalloc_no_sample (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="253" width="0.2" height="15.0" fill="rgb(250,208,49)" rx="2" ry="2" />
+<text  x="1468.95" y="263.5" ></text>
+</g>
+<g >
+<title>sz_index2size (458,628,346 cycles, 0.77%)</title><rect x="667.8" y="125" width="11.4" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="670.78" y="135.5" ></text>
+</g>
+<g >
+<title>rtree_szind_read (299,243,221 cycles, 0.50%)</title><rect x="1421.8" y="205" width="7.5" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1424.84" y="215.5" ></text>
+</g>
+<g >
+<title>clientHasPendingReplies (99,491,507 cycles, 0.17%)</title><rect x="290.3" y="253" width="2.5" height="15.0" fill="rgb(244,179,42)" rx="2" ry="2" />
+<text  x="293.28" y="263.5" ></text>
+</g>
+<g >
+<title>tcache_event (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="173" width="0.2" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1341.80" y="183.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (55,465,336,009 cycles, 93.10%)</title><rect x="105.7" y="509" width="1377.8" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="108.66" y="519.5" >[libc.so.6]</text>
+</g>
+<g >
+<title>tsd_fetch_impl (29,917,748 cycles, 0.05%)</title><rect x="162.4" y="141" width="0.8" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="165.42" y="151.5" ></text>
+</g>
+<g >
+<title>update_min_max (39,977,199 cycles, 0.07%)</title><rect x="775.6" y="269" width="1.0" height="15.0" fill="rgb(233,131,31)" rx="2" ry="2" />
+<text  x="778.62" y="279.5" ></text>
+</g>
+<g >
+<title>ticker_ticks (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="141" width="0.2" height="15.0" fill="rgb(251,213,50)" rx="2" ry="2" />
+<text  x="1341.80" y="151.5" ></text>
+</g>
+<g >
+<title>processInputBuffer (54,318,403,135 cycles, 91.18%)</title><rect x="131.2" y="365" width="1349.4" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="134.18" y="375.5" >processInputBuffer</text>
+</g>
+<g >
+<title>rtree_szind_read (40,110,059 cycles, 0.07%)</title><rect x="270.5" y="173" width="1.0" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="273.49" y="183.5" ></text>
+</g>
+<g >
+<title>imalloc_body (19,883,072 cycles, 0.03%)</title><rect x="1314.0" y="253" width="0.5" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1317.04" y="263.5" ></text>
+</g>
+<g >
+<title>redis-server (59,575,835,441 cycles, 100.00%)</title><rect x="10.0" y="541" width="1480.0" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="13.00" y="551.5" >redis-server</text>
+</g>
+<g >
+<title>listRewind (10,004,285 cycles, 0.02%)</title><rect x="109.1" y="381" width="0.3" height="15.0" fill="rgb(209,21,5)" rx="2" ry="2" />
+<text  x="112.13" y="391.5" ></text>
+</g>
+<g >
+<title>memset@plt (20,307,459 cycles, 0.03%)</title><rect x="1486.8" y="509" width="0.5" height="15.0" fill="rgb(224,88,21)" rx="2" ry="2" />
+<text  x="1489.78" y="519.5" ></text>
+</g>
+<g >
+<title>zfree (1,006,926,915 cycles, 1.69%)</title><rect x="655.1" y="205" width="25.1" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="658.15" y="215.5" >z..</text>
+</g>
+<g >
+<title>ticker_trytick (70,050,143 cycles, 0.12%)</title><rect x="186.5" y="237" width="1.7" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="189.45" y="247.5" ></text>
+</g>
+<g >
+<title>updateCachedTimeWithUs (19,923,801 cycles, 0.03%)</title><rect x="762.0" y="301" width="0.5" height="15.0" fill="rgb(209,21,5)" rx="2" ry="2" />
+<text  x="764.98" y="311.5" ></text>
+</g>
+<g >
+<title>arena_malloc (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="109" width="0.5" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="296.74" y="119.5" ></text>
+</g>
+<g >
+<title>rtree_read (89,832,916 cycles, 0.15%)</title><rect x="1320.2" y="221" width="2.3" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1323.22" y="231.5" ></text>
+</g>
+<g >
+<title>parseExtendedStringArgumentsOrReply (60,112,592 cycles, 0.10%)</title><rect x="262.0" y="285" width="1.5" height="15.0" fill="rgb(209,18,4)" rx="2" ry="2" />
+<text  x="265.05" y="295.5" ></text>
+</g>
+<g >
+<title>listAddNodeHead (79,672,252 cycles, 0.13%)</title><rect x="292.8" y="237" width="1.9" height="15.0" fill="rgb(223,87,20)" rx="2" ry="2" />
+<text  x="295.75" y="247.5" ></text>
+</g>
+<g >
+<title>cache_bin_dalloc_easy (120,208,815 cycles, 0.20%)</title><rect x="150.2" y="173" width="3.0" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="153.25" y="183.5" ></text>
+</g>
+<g >
+<title>authRequired (20,050,251 cycles, 0.03%)</title><rect x="239.8" y="317" width="0.4" height="15.0" fill="rgb(228,109,26)" rx="2" ry="2" />
+<text  x="242.75" y="327.5" ></text>
+</g>
+<g >
+<title>sz_index2size (369,616,380 cycles, 0.62%)</title><rect x="1351.7" y="237" width="9.2" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1354.67" y="247.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (688,304,328 cycles, 1.16%)</title><rect x="848.9" y="301" width="17.1" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="851.92" y="311.5" ></text>
+</g>
+<g >
+<title>je_nallocx (39,929,310 cycles, 0.07%)</title><rect x="272.0" y="221" width="1.0" height="15.0" fill="rgb(248,199,47)" rx="2" ry="2" />
+<text  x="274.98" y="231.5" ></text>
+</g>
+<g >
+<title>sdsavail (49,841,399 cycles, 0.08%)</title><rect x="274.9" y="237" width="1.3" height="15.0" fill="rgb(240,162,38)" rx="2" ry="2" />
+<text  x="277.95" y="247.5" ></text>
+</g>
+<g >
+<title>idalloctm (9,289,011 cycles, 0.02%)</title><rect x="188.2" y="237" width="0.2" height="15.0" fill="rgb(207,10,2)" rx="2" ry="2" />
+<text  x="191.19" y="247.5" ></text>
+</g>
+<g >
+<title>cache_bin_dalloc_easy (129,171,581 cycles, 0.22%)</title><rect x="608.8" y="173" width="3.2" height="15.0" fill="rgb(242,172,41)" rx="2" ry="2" />
+<text  x="611.82" y="183.5" ></text>
+</g>
+<g >
+<title>ztrymalloc_usable_internal (1,266,394,525 cycles, 2.13%)</title><rect x="1331.9" y="301" width="31.4" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1334.87" y="311.5" >zt..</text>
+</g>
+<g >
+<title>handleClientsWithPendingWrites (398,613,121 cycles, 0.67%)</title><rect x="109.4" y="397" width="9.9" height="15.0" fill="rgb(231,121,29)" rx="2" ry="2" />
+<text  x="112.38" y="407.5" ></text>
+</g>
+<g >
+<title>isalloc (40,110,059 cycles, 0.07%)</title><rect x="270.5" y="205" width="1.0" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="273.49" y="215.5" ></text>
+</g>
+<g >
+<title>rtree_cache_direct_map (29,980,371 cycles, 0.05%)</title><rect x="185.7" y="221" width="0.8" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="188.71" y="231.5" ></text>
+</g>
+<g >
+<title>zfree (739,383,187 cycles, 1.24%)</title><rect x="191.7" y="253" width="18.3" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="194.65" y="263.5" ></text>
+</g>
+<g >
+<title>sz_index2size (90,131,408 cycles, 0.15%)</title><rect x="160.2" y="125" width="2.2" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="163.18" y="135.5" ></text>
+</g>
+<g >
+<title>dictGenCaseHashFunction (29,969,344 cycles, 0.05%)</title><rect x="1232.8" y="253" width="0.7" height="15.0" fill="rgb(254,225,54)" rx="2" ry="2" />
+<text  x="1235.75" y="263.5" ></text>
+</g>
+<g >
+<title>je_malloc_default (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="285" width="0.2" height="15.0" fill="rgb(229,112,27)" rx="2" ry="2" />
+<text  x="1341.80" y="295.5" ></text>
+</g>
+<g >
+<title>expireIfNeeded (79,734,139 cycles, 0.13%)</title><rect x="546.6" y="269" width="2.0" height="15.0" fill="rgb(211,30,7)" rx="2" ry="2" />
+<text  x="549.61" y="279.5" ></text>
+</g>
+<g >
+<title>tsd_fetch_impl (19,779,179 cycles, 0.03%)</title><rect x="1326.9" y="253" width="0.5" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="1329.92" y="263.5" ></text>
+</g>
+<g >
+<title>__aarch64_ldadd8_relax (9,953,105 cycles, 0.02%)</title><rect x="111.1" y="365" width="0.3" height="15.0" fill="rgb(210,26,6)" rx="2" ry="2" />
+<text  x="114.12" y="375.5" ></text>
+</g>
+<g >
+<title>slowlogPushCurrentCommand (99,732,193 cycles, 0.17%)</title><rect x="759.5" y="301" width="2.5" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="762.50" y="311.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (458,628,346 cycles, 0.77%)</title><rect x="667.8" y="109" width="11.4" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="670.78" y="119.5" ></text>
+</g>
+<g >
+<title>rtree_szind_read (59,888,969 cycles, 0.10%)</title><rect x="755.5" y="189" width="1.5" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="758.52" y="199.5" ></text>
+</g>
+<g >
+<title>tcache_event (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="189" width="0.2" height="15.0" fill="rgb(243,176,42)" rx="2" ry="2" />
+<text  x="1468.95" y="199.5" ></text>
+</g>
+<g >
+<title>createStringObject (3,154,153,817 cycles, 5.29%)</title><rect x="1363.3" y="333" width="78.4" height="15.0" fill="rgb(211,27,6)" rx="2" ry="2" />
+<text  x="1366.33" y="343.5" >createStr..</text>
+</g>
+<g >
+<title>memcmp@plt (49,659,255 cycles, 0.08%)</title><rect x="1487.3" y="493" width="1.2" height="15.0" fill="rgb(251,214,51)" rx="2" ry="2" />
+<text  x="1490.28" y="503.5" ></text>
+</g>
+<g >
+<title>imalloc (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="285" width="0.2" height="15.0" fill="rgb(252,218,52)" rx="2" ry="2" />
+<text  x="1468.95" y="295.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (319,775,225 cycles, 0.54%)</title><rect x="155.2" y="173" width="8.0" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="158.22" y="183.5" ></text>
+</g>
+<g >
+<title>processMultibulkBuffer (29,712,273 cycles, 0.05%)</title><rect x="1489.0" y="525" width="0.8" height="15.0" fill="rgb(213,39,9)" rx="2" ry="2" />
+<text  x="1492.02" y="535.5" ></text>
+</g>
+<g >
+<title>isalloc (758,817,304 cycles, 1.27%)</title><rect x="1421.8" y="237" width="18.9" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1424.84" y="247.5" ></text>
+</g>
+<g >
+<title>extend_to_usable (99,746,777 cycles, 0.17%)</title><rect x="1380.7" y="269" width="2.4" height="15.0" fill="rgb(225,93,22)" rx="2" ry="2" />
+<text  x="1383.66" y="279.5" ></text>
+</g>
+<g >
+<title>arena_salloc (309,579,902 cycles, 0.52%)</title><rect x="1470.2" y="269" width="7.7" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="1473.17" y="279.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_szind_read (19,793,508 cycles, 0.03%)</title><rect x="1319.7" y="221" width="0.5" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1322.73" y="231.5" ></text>
+</g>
+<g >
+<title>malloc_mutex_lock (10,036,131 cycles, 0.02%)</title><rect x="153.5" y="173" width="0.2" height="15.0" fill="rgb(221,74,17)" rx="2" ry="2" />
+<text  x="156.48" y="183.5" ></text>
+</g>
+<g >
+<title>arena_salloc (697,491,951 cycles, 1.17%)</title><rect x="661.8" y="141" width="17.4" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="664.84" y="151.5" ></text>
+</g>
+<g >
+<title>trimStringObjectIfNeeded (439,179,562 cycles, 0.74%)</title><rect x="265.3" y="269" width="10.9" height="15.0" fill="rgb(216,50,12)" rx="2" ry="2" />
+<text  x="268.28" y="279.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (508,875,763 cycles, 0.85%)</title><rect x="1466.2" y="301" width="12.6" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="1469.21" y="311.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (39,899,688 cycles, 0.07%)</title><rect x="159.2" y="93" width="1.0" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="162.19" y="103.5" ></text>
+</g>
+<g >
+<title>arena_malloc (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="205" width="0.2" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1341.80" y="215.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCompare (3,846,424,124 cycles, 6.46%)</title><rect x="429.7" y="253" width="95.5" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="432.68" y="263.5" >dictSdsKeyC..</text>
+</g>
+<g >
+<title>lookupCommand (1,734,870,356 cycles, 2.91%)</title><rect x="1204.8" y="317" width="43.1" height="15.0" fill="rgb(219,68,16)" rx="2" ry="2" />
+<text  x="1207.77" y="327.5" >look..</text>
+</g>
+<g >
+<title>tsd_rtree_ctx (9,908,699 cycles, 0.02%)</title><rect x="206.5" y="173" width="0.3" height="15.0" fill="rgb(206,8,1)" rx="2" ry="2" />
+<text  x="209.54" y="183.5" ></text>
+</g>
+<g >
+<title>updateCommandLatencyHistogram (569,193,917 cycles, 0.96%)</title><rect x="762.5" y="301" width="14.1" height="15.0" fill="rgb(232,125,29)" rx="2" ry="2" />
+<text  x="765.47" y="311.5" ></text>
+</g>
+<g >
+<title>zfree (379,759,988 cycles, 0.64%)</title><rect x="153.7" y="205" width="9.5" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="156.73" y="215.5" ></text>
+</g>
+<g >
+<title>beforeNextClient (10,043,106 cycles, 0.02%)</title><rect x="126.5" y="365" width="0.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="129.46" y="375.5" ></text>
+</g>
+<g >
+<title>_addReplyToBufferOrList (10,012,189 cycles, 0.02%)</title><rect x="105.4" y="509" width="0.3" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="108.41" y="519.5" ></text>
+</g>
+<g >
+<title>ticker_trytick (49,653,126 cycles, 0.08%)</title><rect x="1312.6" y="269" width="1.2" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1315.56" y="279.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCaseCompare (408,738,398 cycles, 0.69%)</title><rect x="1233.7" y="253" width="10.2" height="15.0" fill="rgb(209,18,4)" rx="2" ry="2" />
+<text  x="1236.74" y="263.5" ></text>
+</g>
+<g >
+<title>sz_index2size (79,521,621 cycles, 0.13%)</title><rect x="1463.2" y="285" width="2.0" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1466.24" y="295.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_bits_read (19,793,508 cycles, 0.03%)</title><rect x="1319.7" y="205" width="0.5" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1322.73" y="215.5" ></text>
+</g>
+<g >
+<title>_addReplyToBufferOrList (229,106,865 cycles, 0.38%)</title><rect x="279.4" y="269" width="5.7" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="282.40" y="279.5" ></text>
+</g>
+<g >
+<title>[unknown] (119,763,265 cycles, 0.20%)</title><rect x="115.1" y="301" width="2.9" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="118.07" y="311.5" ></text>
+</g>
+<g >
+<title>je_malloc (478,005,279 cycles, 0.80%)</title><rect x="1454.1" y="301" width="11.9" height="15.0" fill="rgb(230,115,27)" rx="2" ry="2" />
+<text  x="1457.08" y="311.5" ></text>
+</g>
+<g >
+<title>je_arena_tcache_fill_small (19,776,878 cycles, 0.03%)</title><rect x="293.7" y="61" width="0.5" height="15.0" fill="rgb(238,152,36)" rx="2" ry="2" />
+<text  x="296.74" y="71.5" ></text>
+</g>
+<g >
+<title>je_free (408,350,684 cycles, 0.69%)</title><rect x="603.1" y="205" width="10.2" height="15.0" fill="rgb(212,34,8)" rx="2" ry="2" />
+<text  x="606.13" y="215.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (229,314,482 cycles, 0.38%)</title><rect x="1374.0" y="285" width="5.7" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="1376.98" y="295.5" ></text>
+</g>
+<g >
+<title>updateClientMemUsageAndBucket (29,769,514 cycles, 0.05%)</title><rect x="118.5" y="365" width="0.8" height="15.0" fill="rgb(207,9,2)" rx="2" ry="2" />
+<text  x="121.54" y="375.5" ></text>
+</g>
+<g >
+<title>arena_malloc (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="221" width="0.2" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1468.95" y="231.5" ></text>
+</g>
+<g >
+<title>moduleCallCommandFilters (10,072,160 cycles, 0.02%)</title><rect x="1247.9" y="317" width="0.2" height="15.0" fill="rgb(235,138,33)" rx="2" ry="2" />
+<text  x="1250.87" y="327.5" ></text>
+</g>
+<g >
+<title>processCommandAndResetClient (45,030,475,963 cycles, 75.59%)</title><rect x="134.9" y="349" width="1118.7" height="15.0" fill="rgb(243,175,41)" rx="2" ry="2" />
+<text  x="137.90" y="359.5" >processCommandAndResetClient</text>
+</g>
+<g >
+<title>imalloc_body (9,932,468 cycles, 0.02%)</title><rect x="1338.8" y="253" width="0.2" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="1341.80" y="263.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCompare (49,659,255 cycles, 0.08%)</title><rect x="1487.3" y="509" width="1.2" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="1490.28" y="519.5" ></text>
+</g>
+<g >
+<title>sdslen (109,691,942 cycles, 0.18%)</title><rect x="1480.6" y="365" width="2.7" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="1483.57" y="375.5" ></text>
+</g>
+<g >
+<title>free_fastpath (129,353,072 cycles, 0.22%)</title><rect x="681.2" y="253" width="3.2" height="15.0" fill="rgb(250,209,50)" rx="2" ry="2" />
+<text  x="684.15" y="263.5" ></text>
+</g>
+<g >
+<title>arena_salloc (40,110,059 cycles, 0.07%)</title><rect x="270.5" y="189" width="1.0" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="273.49" y="199.5" ></text>
+</g>
+<g >
+<title>rtree_szind_read (238,863,605 cycles, 0.40%)</title><rect x="661.8" y="125" width="6.0" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="664.84" y="135.5" ></text>
+</g>
+<g >
+<title>trimStringObjectIfNeeded (409,279,918 cycles, 0.69%)</title><rect x="266.0" y="253" width="10.2" height="15.0" fill="rgb(216,50,12)" rx="2" ry="2" />
+<text  x="269.02" y="263.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (9,973,144 cycles, 0.02%)</title><rect x="1338.6" y="253" width="0.2" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="1341.55" y="263.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCompare (538,838,205 cycles, 0.90%)</title><rect x="714.4" y="237" width="13.4" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="717.39" y="247.5" ></text>
+</g>
+<g >
+<title>listDelNode (9,946,745 cycles, 0.02%)</title><rect x="110.6" y="381" width="0.3" height="15.0" fill="rgb(236,145,34)" rx="2" ry="2" />
+<text  x="113.62" y="391.5" ></text>
+</g>
+<g >
+<title>isalloc (9,916,296 cycles, 0.02%)</title><rect x="294.5" y="173" width="0.2" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="297.48" y="183.5" ></text>
+</g>
+<g >
+<title>writeToClient (328,635,750 cycles, 0.55%)</title><rect x="111.1" y="381" width="8.2" height="15.0" fill="rgb(247,195,46)" rx="2" ry="2" />
+<text  x="114.12" y="391.5" ></text>
+</g>
+<g >
+<title>tsd_fast (9,973,144 cycles, 0.02%)</title><rect x="1338.6" y="269" width="0.2" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="1341.55" y="279.5" ></text>
+</g>
+<g >
+<title>sz_s2u_lookup (20,038,278 cycles, 0.03%)</title><rect x="272.2" y="173" width="0.5" height="15.0" fill="rgb(231,120,28)" rx="2" ry="2" />
+<text  x="275.22" y="183.5" ></text>
+</g>
+<g >
+<title>connSocketWrite (119,763,265 cycles, 0.20%)</title><rect x="115.1" y="333" width="2.9" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="118.07" y="343.5" ></text>
+</g>
+<g >
+<title>ztrymalloc_usable_internal (996,998,598 cycles, 1.67%)</title><rect x="1454.1" y="317" width="24.7" height="15.0" fill="rgb(227,103,24)" rx="2" ry="2" />
+<text  x="1457.08" y="327.5" >z..</text>
+</g>
+<g >
+<title>connWrite (119,763,265 cycles, 0.20%)</title><rect x="115.1" y="349" width="2.9" height="15.0" fill="rgb(207,10,2)" rx="2" ry="2" />
+<text  x="118.07" y="359.5" ></text>
+</g>
+<g >
+<title>je_arena_dalloc_bin_junked_locked (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="141" width="0.2" height="15.0" fill="rgb(224,87,21)" rx="2" ry="2" />
+<text  x="1468.95" y="151.5" ></text>
+</g>
+<g >
+<title>dictSdsCaseHash (9,961,854 cycles, 0.02%)</title><rect x="1233.5" y="253" width="0.2" height="15.0" fill="rgb(214,42,10)" rx="2" ry="2" />
+<text  x="1236.50" y="263.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (977,755,353 cycles, 1.64%)</title><rect x="499.2" y="237" width="24.3" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="502.21" y="247.5" >[..</text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (229,349,718 cycles, 0.38%)</title><rect x="1423.6" y="173" width="5.7" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="1426.58" y="183.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (69,892,959 cycles, 0.12%)</title><rect x="199.8" y="157" width="1.8" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="202.85" y="167.5" ></text>
+</g>
+<g >
+<title>alsoPropagate (109,623,551 cycles, 0.18%)</title><rect x="254.9" y="301" width="2.7" height="15.0" fill="rgb(215,46,11)" rx="2" ry="2" />
+<text  x="257.86" y="311.5" ></text>
+</g>
+<g >
+<title>connSocketRead (169,971,360 cycles, 0.29%)</title><rect x="126.7" y="349" width="4.2" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="129.71" y="359.5" ></text>
+</g>
+<g >
+<title>sz_size2index_lookup (20,016,433 cycles, 0.03%)</title><rect x="1337.8" y="269" width="0.5" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1340.81" y="279.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (129,773,121 cycles, 0.22%)</title><rect x="1470.4" y="221" width="3.2" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="1473.41" y="231.5" ></text>
+</g>
+<g >
+<title>dictGenericDelete (29,906,055 cycles, 0.05%)</title><rect x="686.1" y="237" width="0.8" height="15.0" fill="rgb(228,107,25)" rx="2" ry="2" />
+<text  x="689.13" y="247.5" ></text>
+</g>
+<g >
+<title>_addReplyToBufferOrList (249,039,537 cycles, 0.42%)</title><rect x="279.2" y="285" width="6.1" height="15.0" fill="rgb(239,158,37)" rx="2" ry="2" />
+<text  x="282.15" y="295.5" ></text>
+</g>
+<g >
+<title>atomic_load_p (39,487,148 cycles, 0.07%)</title><rect x="1346.7" y="189" width="1.0" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="1349.74" y="199.5" ></text>
+</g>
+<g >
+<title>rtree_read (69,892,959 cycles, 0.12%)</title><rect x="199.8" y="173" width="1.8" height="15.0" fill="rgb(211,28,6)" rx="2" ry="2" />
+<text  x="202.85" y="183.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (40,110,059 cycles, 0.07%)</title><rect x="270.5" y="141" width="1.0" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="273.49" y="151.5" ></text>
+</g>
+<g >
+<title>sz_index2size (29,938,743 cycles, 0.05%)</title><rect x="1311.6" y="269" width="0.7" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1314.57" y="279.5" ></text>
+</g>
+<g >
+<title>arena_dalloc (9,289,011 cycles, 0.02%)</title><rect x="188.2" y="221" width="0.2" height="15.0" fill="rgb(222,81,19)" rx="2" ry="2" />
+<text  x="191.19" y="231.5" ></text>
+</g>
+<g >
+<title>tsd_fetch_impl (89,920,573 cycles, 0.15%)</title><rect x="1361.1" y="253" width="2.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="1364.10" y="263.5" ></text>
+</g>
+<g >
+<title>processTimeEvents (10,026,505 cycles, 0.02%)</title><rect x="1483.3" y="413" width="0.2" height="15.0" fill="rgb(218,60,14)" rx="2" ry="2" />
+<text  x="1486.30" y="423.5" ></text>
+</g>
+<g >
+<title>dictSdsKeyCompare (639,143,310 cycles, 1.07%)</title><rect x="579.1" y="237" width="15.9" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="582.08" y="247.5" ></text>
+</g>
+<g >
+<title>sz_s2u (20,038,278 cycles, 0.03%)</title><rect x="272.2" y="189" width="0.5" height="15.0" fill="rgb(247,193,46)" rx="2" ry="2" />
+<text  x="275.22" y="199.5" ></text>
+</g>
+<g >
+<title>_writeToClient (268,997,768 cycles, 0.45%)</title><rect x="111.4" y="365" width="6.6" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="114.36" y="375.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (90,131,408 cycles, 0.15%)</title><rect x="160.2" y="109" width="2.2" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="163.18" y="119.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_szind_read (69,893,503 cycles, 0.12%)</title><rect x="1421.8" y="189" width="1.8" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1424.84" y="199.5" ></text>
+</g>
+<g >
+<title>sz_size2index_lookup (89,858,292 cycles, 0.15%)</title><rect x="1404.0" y="237" width="2.2" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1406.99" y="247.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (199,529,093 cycles, 0.33%)</title><rect x="201.6" y="173" width="4.9" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="204.59" y="183.5" ></text>
+</g>
+<g >
+<title>ustime (19,944,788 cycles, 0.03%)</title><rect x="1483.5" y="509" width="0.5" height="15.0" fill="rgb(230,117,28)" rx="2" ry="2" />
+<text  x="1486.55" y="519.5" ></text>
+</g>
+<g >
+<title>resetClient (2,954,078,882 cycles, 4.96%)</title><rect x="136.6" y="301" width="73.4" height="15.0" fill="rgb(208,17,4)" rx="2" ry="2" />
+<text  x="139.63" y="311.5" >resetCli..</text>
+</g>
+<g >
+<title>getMaxmemoryState (20,036,170 cycles, 0.03%)</title><rect x="1249.6" y="301" width="0.5" height="15.0" fill="rgb(237,149,35)" rx="2" ry="2" />
+<text  x="1252.60" y="311.5" ></text>
+</g>
+<g >
+<title>arena_salloc (279,330,751 cycles, 0.47%)</title><rect x="199.8" y="205" width="7.0" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="202.85" y="215.5" ></text>
+</g>
+<g >
+<title>arena_salloc (568,197,344 cycles, 0.95%)</title><rect x="1346.7" y="253" width="14.2" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="1349.74" y="263.5" ></text>
+</g>
+<g >
+<title>beforeSleep (408,617,406 cycles, 0.69%)</title><rect x="109.1" y="413" width="10.2" height="15.0" fill="rgb(250,211,50)" rx="2" ry="2" />
+<text  x="112.13" y="423.5" ></text>
+</g>
+<g >
+<title>je_malloc (29,972,628 cycles, 0.05%)</title><rect x="293.0" y="189" width="0.7" height="15.0" fill="rgb(230,115,27)" rx="2" ry="2" />
+<text  x="296.00" y="199.5" ></text>
+</g>
+<g >
+<title>ticker_trytick (29,879,582 cycles, 0.05%)</title><rect x="1465.2" y="285" width="0.8" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1468.21" y="295.5" ></text>
+</g>
+<g >
+<title>cache_bin_alloc_easy (439,880,530 cycles, 0.74%)</title><rect x="1392.8" y="237" width="10.9" height="15.0" fill="rgb(238,154,36)" rx="2" ry="2" />
+<text  x="1395.81" y="247.5" ></text>
+</g>
+<g >
+<title>sdslen (69,829,911 cycles, 0.12%)</title><rect x="523.5" y="237" width="1.7" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="526.50" y="247.5" ></text>
+</g>
+<g >
+<title>createRawStringObject (3,104,373,757 cycles, 5.21%)</title><rect x="1364.6" y="317" width="77.1" height="15.0" fill="rgb(236,142,34)" rx="2" ry="2" />
+<text  x="1367.57" y="327.5" >createRa..</text>
+</g>
+<g >
+<title>arena_salloc (269,497,096 cycles, 0.45%)</title><rect x="1319.7" y="253" width="6.7" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="1322.73" y="263.5" ></text>
+</g>
+<g >
+<title>zfree (159,562,474 cycles, 0.27%)</title><rect x="754.3" y="253" width="4.0" height="15.0" fill="rgb(225,92,22)" rx="2" ry="2" />
+<text  x="757.29" y="263.5" ></text>
+</g>
+<g >
+<title>je_malloc_usable_size (109,845,449 cycles, 0.18%)</title><rect x="755.5" y="237" width="2.8" height="15.0" fill="rgb(232,126,30)" rx="2" ry="2" />
+<text  x="758.52" y="247.5" ></text>
+</g>
+<g >
+<title>call (19,944,788 cycles, 0.03%)</title><rect x="1483.5" y="525" width="0.5" height="15.0" fill="rgb(252,216,51)" rx="2" ry="2" />
+<text  x="1486.55" y="535.5" ></text>
+</g>
+<g >
+<title>crc16 (11,163,552,116 cycles, 18.74%)</title><rect x="913.5" y="285" width="277.4" height="15.0" fill="rgb(232,127,30)" rx="2" ry="2" />
+<text  x="916.54" y="295.5" >crc16</text>
+</g>
+<g >
+<title>sz_index2size_lookup (159,870,672 cycles, 0.27%)</title><rect x="1322.5" y="221" width="3.9" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1325.45" y="231.5" ></text>
+</g>
+<g >
+<title>addReply (408,103,201 cycles, 0.69%)</title><rect x="285.3" y="285" width="10.2" height="15.0" fill="rgb(209,22,5)" rx="2" ry="2" />
+<text  x="288.34" y="295.5" ></text>
+</g>
+<g >
+<title>tcache_alloc_small (19,883,072 cycles, 0.03%)</title><rect x="1314.0" y="189" width="0.5" height="15.0" fill="rgb(209,20,4)" rx="2" ry="2" />
+<text  x="1317.04" y="199.5" ></text>
+</g>
+<g >
+<title>[unknown] (169,971,360 cycles, 0.29%)</title><rect x="126.7" y="301" width="4.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="129.71" y="311.5" ></text>
+</g>
+<g >
+<title>callHandler (54,777,782,488 cycles, 91.95%)</title><rect x="122.5" y="397" width="1360.8" height="15.0" fill="rgb(217,56,13)" rx="2" ry="2" />
+<text  x="125.49" y="407.5" >callHandler</text>
+</g>
+<g >
+<title>sz_size2index_lookup (9,920,786 cycles, 0.02%)</title><rect x="1312.3" y="269" width="0.3" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1315.31" y="279.5" ></text>
+</g>
+<g >
+<title>freeStringObject (3,101,025,617 cycles, 5.21%)</title><rect x="603.1" y="221" width="77.1" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="606.13" y="231.5" >freeStri..</text>
+</g>
+<g >
+<title>dictFetchValue (30,040,561 cycles, 0.05%)</title><rect x="1486.0" y="525" width="0.8" height="15.0" fill="rgb(246,193,46)" rx="2" ry="2" />
+<text  x="1489.03" y="535.5" ></text>
+</g>
+<g >
+<title>getKeysFromCommand (19,960,286 cycles, 0.03%)</title><rect x="867.8" y="301" width="0.4" height="15.0" fill="rgb(233,132,31)" rx="2" ry="2" />
+<text  x="870.75" y="311.5" ></text>
+</g>
+<g >
+<title>rtree_cache_direct_map (49,790,152 cycles, 0.08%)</title><rect x="612.0" y="157" width="1.3" height="15.0" fill="rgb(209,19,4)" rx="2" ry="2" />
+<text  x="615.03" y="167.5" ></text>
+</g>
+<g >
+<title>zmalloc_used_memory (10,009,915 cycles, 0.02%)</title><rect x="1249.9" y="285" width="0.2" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="1252.85" y="295.5" ></text>
+</g>
+<g >
+<title>[unknown] (169,971,360 cycles, 0.29%)</title><rect x="126.7" y="285" width="4.2" height="15.0" fill="rgb(210,24,5)" rx="2" ry="2" />
+<text  x="129.71" y="295.5" ></text>
+</g>
+<g >
+<title>sz_index2size (169,856,240 cycles, 0.29%)</title><rect x="1473.6" y="253" width="4.3" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1476.64" y="263.5" ></text>
+</g>
+<g >
+<title>getKeysPrepareResult (49,749,791 cycles, 0.08%)</title><rect x="1201.5" y="285" width="1.3" height="15.0" fill="rgb(212,33,8)" rx="2" ry="2" />
+<text  x="1204.55" y="295.5" ></text>
+</g>
+<g >
+<title>arena_slab_reg_dalloc (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="109" width="0.2" height="15.0" fill="rgb(240,164,39)" rx="2" ry="2" />
+<text  x="1468.95" y="119.5" ></text>
+</g>
+<g >
+<title>tsd_fetch_impl (39,916,346 cycles, 0.07%)</title><rect x="679.2" y="141" width="1.0" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="682.17" y="151.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (79,521,621 cycles, 0.13%)</title><rect x="1463.2" y="269" width="2.0" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="1466.24" y="279.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_szind_read (39,487,148 cycles, 0.07%)</title><rect x="1346.7" y="221" width="1.0" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="1349.74" y="231.5" ></text>
+</g>
+<g >
+<title>counts_inc_normalised (349,636,624 cycles, 0.59%)</title><rect x="766.2" y="269" width="8.7" height="15.0" fill="rgb(230,117,28)" rx="2" ry="2" />
+<text  x="769.19" y="279.5" ></text>
+</g>
+<g >
+<title>slowlogPushCurrentCommand (40,055,340 cycles, 0.07%)</title><rect x="761.0" y="285" width="1.0" height="15.0" fill="rgb(254,228,54)" rx="2" ry="2" />
+<text  x="763.98" y="295.5" ></text>
+</g>
+<g >
+<title>createEmbeddedStringObject (1,086,115,903 cycles, 1.82%)</title><rect x="1300.4" y="333" width="27.0" height="15.0" fill="rgb(235,139,33)" rx="2" ry="2" />
+<text  x="1303.43" y="343.5" >c..</text>
+</g>
+<g >
+<title>tsd_state_get (10,023,994 cycles, 0.02%)</title><rect x="272.7" y="173" width="0.3" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="275.72" y="183.5" ></text>
+</g>
+<g >
+<title>sz_index2size_lookup (9,916,296 cycles, 0.02%)</title><rect x="294.5" y="125" width="0.2" height="15.0" fill="rgb(205,3,0)" rx="2" ry="2" />
+<text  x="297.48" y="135.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_bits_read (9,950,541 cycles, 0.02%)</title><rect x="1470.2" y="221" width="0.2" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1473.17" y="231.5" ></text>
+</g>
+<g >
+<title>sdslen (40,063,829 cycles, 0.07%)</title><rect x="266.0" y="221" width="1.0" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="269.02" y="231.5" ></text>
+</g>
+<g >
+<title>main (55,465,336,009 cycles, 93.10%)</title><rect x="105.7" y="477" width="1377.8" height="15.0" fill="rgb(243,179,42)" rx="2" ry="2" />
+<text  x="108.66" y="487.5" >main</text>
+</g>
+<g >
+<title>rtree_leaf_elm_szind_read (49,798,951 cycles, 0.08%)</title><rect x="661.8" y="109" width="1.3" height="15.0" fill="rgb(214,43,10)" rx="2" ry="2" />
+<text  x="664.84" y="119.5" ></text>
+</g>
+<g >
+<title>sz_index2size (9,976,715 cycles, 0.02%)</title><rect x="1403.7" y="237" width="0.3" height="15.0" fill="rgb(221,76,18)" rx="2" ry="2" />
+<text  x="1406.74" y="247.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (49,956,480 cycles, 0.08%)</title><rect x="757.0" y="221" width="1.3" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="760.01" y="231.5" ></text>
+</g>
+<g >
+<title>_start (55,465,336,009 cycles, 93.10%)</title><rect x="105.7" y="525" width="1377.8" height="15.0" fill="rgb(245,185,44)" rx="2" ry="2" />
+<text  x="108.66" y="535.5" >_start</text>
+</g>
+<g >
+<title>je_tcache_event_hard (20,032,600 cycles, 0.03%)</title><rect x="153.2" y="205" width="0.5" height="15.0" fill="rgb(248,197,47)" rx="2" ry="2" />
+<text  x="156.23" y="215.5" ></text>
+</g>
+<g >
+<title>je_tcache_event_hard (10,117,556 cycles, 0.02%)</title><rect x="1466.0" y="173" width="0.2" height="15.0" fill="rgb(248,197,47)" rx="2" ry="2" />
+<text  x="1468.95" y="183.5" ></text>
+</g>
+<g >
+<title>tsd_fetch_impl (130,046,359 cycles, 0.22%)</title><rect x="206.8" y="205" width="3.2" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="209.79" y="215.5" ></text>
+</g>
+<g >
+<title>get_sub_bucket_index (9,917,966 cycles, 0.02%)</title><rect x="775.4" y="253" width="0.2" height="15.0" fill="rgb(239,159,38)" rx="2" ry="2" />
+<text  x="778.37" y="263.5" ></text>
+</g>
+<g >
+<title>sdslen (60,186,958 cycles, 0.10%)</title><rect x="1441.7" y="333" width="1.5" height="15.0" fill="rgb(221,73,17)" rx="2" ry="2" />
+<text  x="1444.69" y="343.5" ></text>
+</g>
+<g >
+<title>ticker_trytick (219,313,998 cycles, 0.37%)</title><rect x="1406.2" y="237" width="5.5" height="15.0" fill="rgb(226,100,23)" rx="2" ry="2" />
+<text  x="1409.22" y="247.5" ></text>
+</g>
+<g >
+<title>je_tcache_event_hard (10,051,038 cycles, 0.02%)</title><rect x="188.4" y="269" width="0.3" height="15.0" fill="rgb(248,197,47)" rx="2" ry="2" />
+<text  x="191.42" y="279.5" ></text>
+</g>
+<g >
+<title>[libc.so.6] (309,514,596 cycles, 0.52%)</title><rect x="719.1" y="221" width="7.7" height="15.0" fill="rgb(223,84,20)" rx="2" ry="2" />
+<text  x="722.10" y="231.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (29,917,748 cycles, 0.05%)</title><rect x="162.4" y="125" width="0.8" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="165.42" y="135.5" ></text>
+</g>
+<g >
+<title>tsd_fetch_impl (49,956,480 cycles, 0.08%)</title><rect x="757.0" y="205" width="1.3" height="15.0" fill="rgb(222,79,19)" rx="2" ry="2" />
+<text  x="760.01" y="215.5" ></text>
+</g>
+<g >
+<title>isalloc (130,031,096 cycles, 0.22%)</title><rect x="159.2" y="157" width="3.2" height="15.0" fill="rgb(213,40,9)" rx="2" ry="2" />
+<text  x="162.19" y="167.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (39,820,183 cycles, 0.07%)</title><rect x="1477.9" y="285" width="0.9" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="1480.86" y="295.5" ></text>
+</g>
+<g >
+<title>tsd_state_get (19,959,763 cycles, 0.03%)</title><rect x="271.5" y="173" width="0.5" height="15.0" fill="rgb(210,23,5)" rx="2" ry="2" />
+<text  x="274.48" y="183.5" ></text>
+</g>
+<g >
+<title>freeStringObject (779,212,907 cycles, 1.31%)</title><rect x="143.8" y="237" width="19.4" height="15.0" fill="rgb(217,58,13)" rx="2" ry="2" />
+<text  x="146.81" y="247.5" ></text>
+</g>
+<g >
+<title>dictFind (1,925,921,942 cycles, 3.23%)</title><rect x="553.8" y="253" width="47.8" height="15.0" fill="rgb(213,38,9)" rx="2" ry="2" />
+<text  x="556.79" y="263.5" >dict..</text>
+</g>
+<g >
+<title>commandProcessed (3,013,899,668 cycles, 5.06%)</title><rect x="135.1" y="333" width="74.9" height="15.0" fill="rgb(219,64,15)" rx="2" ry="2" />
+<text  x="138.15" y="343.5" >commandP..</text>
+</g>
+<g >
+<title>arena_salloc (59,888,969 cycles, 0.10%)</title><rect x="755.5" y="205" width="1.5" height="15.0" fill="rgb(225,95,22)" rx="2" ry="2" />
+<text  x="758.52" y="215.5" ></text>
+</g>
+<g >
+<title>zmalloc_used_memory (29,786,785 cycles, 0.05%)</title><rect x="776.6" y="301" width="0.8" height="15.0" fill="rgb(222,80,19)" rx="2" ry="2" />
+<text  x="779.61" y="311.5" ></text>
+</g>
+<g >
+<title>putClientInPendingWriteQueue (79,672,252 cycles, 0.13%)</title><rect x="292.8" y="253" width="1.9" height="15.0" fill="rgb(233,129,31)" rx="2" ry="2" />
+<text  x="295.75" y="263.5" ></text>
+</g>
+<g >
+<title>tsdn_fetch (99,835,169 cycles, 0.17%)</title><rect x="1360.9" y="269" width="2.4" height="15.0" fill="rgb(228,110,26)" rx="2" ry="2" />
+<text  x="1363.85" y="279.5" ></text>
+</g>
+<g >
+<title>rtree_leaf_elm_lookup (159,093,816 cycles, 0.27%)</title><rect x="1347.7" y="205" width="4.0" height="15.0" fill="rgb(253,221,53)" rx="2" ry="2" />
+<text  x="1350.72" y="215.5" ></text>
+</g>
+<g >
+<title>rtree_szind_read (198,580,964 cycles, 0.33%)</title><rect x="1346.7" y="237" width="5.0" height="15.0" fill="rgb(231,122,29)" rx="2" ry="2" />
+<text  x="1349.74" y="247.5" ></text>
+</g>
+<g >
+<title>scriptIsTimedout (20,000,867 cycles, 0.03%)</title><rect x="1250.6" y="269" width="0.5" height="15.0" fill="rgb(233,130,31)" rx="2" ry="2" />
+<text  x="1253.59" y="279.5" ></text>
+</g>
+<g >
+<title>isInsideYieldingLongCommand (79,900,140 cycles, 0.13%)</title><rect x="1202.8" y="317" width="2.0" height="15.0" fill="rgb(211,31,7)" rx="2" ry="2" />
+<text  x="1205.78" y="327.5" ></text>
+</g>
+<g >
+<title>_addReplyToBuffer (10,012,189 cycles, 0.02%)</title><rect x="105.4" y="493" width="0.3" height="15.0" fill="rgb(247,196,47)" rx="2" ry="2" />
+<text  x="108.41" y="503.5" ></text>
+</g>
+</g>
+</svg>

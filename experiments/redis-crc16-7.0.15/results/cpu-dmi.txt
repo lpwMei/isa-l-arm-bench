@@ -1,0 +1,6 @@
+	Manufacturer: HiSilicon
+	Version: Kunpeng 950 7592C
+	Current Speed: 2300 MHz
+	Manufacturer: HiSilicon
+	Version: Kunpeng 950 7592C
+	Current Speed: 2300 MHz

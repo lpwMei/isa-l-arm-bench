@@ -1,0 +1,44 @@
+diff --git a/src/crc16_xmodem_short.S b/src/crc16_xmodem_short.S
+--- a/src/crc16_xmodem_short.S
++++ b/src/crc16_xmodem_short.S
+@@ -48,27 +48,9 @@
+ 	sub	x2, x2, 16
+ 	b	.crc_short_process
+ 
+-	/* ---- Partial tail: < 16 bytes, zero-padded load ---- */
++	/* Finish full chunks; consume the exact tail after reduction. */
+ .crc_short_tail:
+-	cbz	x2, .crc_short_finish
+-
+-	/* Zero a 16B buffer on the stack */
+-	sub	sp, sp, 16
+-	movi	v28.16b, 0
+-	str	q28, [sp]
+-
+-	/* Copy remaining bytes to stack buffer */
+-	mov	x5, sp
+-1:	cbz	x2, 2f
+-	ldrb	w6, [x1], #1
+-	strb	w6, [x5], #1
+-	sub	x2, x2, 1
+-	b	1b
+-2:
+-	/* Load assembled bytes from stack */
+-	ldr	q28, [sp]
+-	add	sp, sp, 16
+-	mov	x2, 0			/* all bytes consumed */
++	b	.crc_short_finish
+ 
+ 	/* ---- Process loaded 16B chunk ---- */
+ .crc_short_process:
+@@ -137,7 +119,9 @@
+ 
+ 	umov	x0, v2.d[0]
+ 	ubfx	x0, x0, 16, 16
+-	ret
++	/* x1 points to the remaining 0..15 bytes, x2 is their exact length.
++	 * Continue from the reduced CRC; do not hash zero padding. */
++	b	crc16_xmodem_pmull
+ 
+ #ifndef __APPLE__
+ 	.size	crc16_xmodem_short, .-crc16_xmodem_short

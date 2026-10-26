@@ -1,0 +1,6 @@
+{
+  "keys": 10000,
+  "key_bytes": 64,
+  "value_bytes": 64,
+  "get_hit_keyspace": true
+}

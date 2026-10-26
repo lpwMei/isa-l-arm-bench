@@ -1,0 +1,29 @@
+name: EC SVE optimization screening
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/ec-sve-opt]
+    paths: [.github/workflows/ec-sve-opt.yml]
+permissions:
+  contents: read
+jobs:
+  screen:
+    if: github.event.repository.private == false
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 35
+    env:
+      UPSTREAM_SHA: 8fa1e72fee7338fcfbf829b00f2f407631bd2dba
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential autoconf automake libtool zlib1g-dev python3
+      - name: Build, check and compare unchanged official benchmarks
+        run: bash experiments/ec-sve/run_screen.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ec-sve-screen-${{ github.run_id }}
+          path: ${{ runner.temp }}/ec-sve-screen/results
+          retention-days: 14

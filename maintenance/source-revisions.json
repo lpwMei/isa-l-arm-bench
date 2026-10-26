@@ -1,0 +1,50 @@
+[
+  {
+    "path": "upstream/crc16_bench",
+    "remote": "https://gitee.com/chenxuqiang2022/crc16_bench.git",
+    "commit": "f8e9dbea5bd065823f0f77532136851e1d25dd0c",
+    "working_changes": []
+  },
+  {
+    "path": "upstream/redis-7.0.15",
+    "remote": "https://github.com/redis/redis.git",
+    "commit": "f35f36a265403c07b119830aa4bb3b7d71653ec9",
+    "working_changes": [
+      "M src/Makefile",
+      " M src/crc16.c",
+      "?? src/CRC16_XMODEM_NOTICE",
+      "?? src/crc16_xmodem_constants.h",
+      "?? src/crc16_xmodem_dispatch.c",
+      "?? src/crc16_xmodem_pmull.S",
+      "?? src/crc16_xmodem_pmull_8way.S",
+      "?? src/crc16_xmodem_pmull_opt.S",
+      "?? src/crc16_xmodem_short.S"
+    ]
+  },
+  {
+    "path": "upstream/redis",
+    "remote": "https://github.com/redis/redis.git",
+    "commit": "559d143b4e0409c452f7d229ba420954b6b647a2",
+    "working_changes": []
+  },
+  {
+    "path": "upstream/isa-l",
+    "remote": "https://github.com/intel/isa-l.git",
+    "commit": "8fa1e72fee7338fcfbf829b00f2f407631bd2dba",
+    "working_changes": [
+      "M erasure_code/aarch64/gf_nvect_dot_prod_sve.c"
+    ]
+  },
+  {
+    "path": "upstream/isa-l_crypto",
+    "remote": "https://github.com/intel/isa-l_crypto.git",
+    "commit": "f22c49aef162d7632bde4f22dc7491b22f0a7fc2",
+    "working_changes": []
+  },
+  {
+    "path": "tools/FlameGraph",
+    "remote": "https://github.com/brendangregg/FlameGraph.git",
+    "commit": "41fee1f99f9276008b7cd112fca19dc3ea84ac32",
+    "working_changes": []
+  }
+]

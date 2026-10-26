@@ -1,0 +1,9 @@
+Running benchmark with specified buffer sizes: 16,64,256,1024,4096,65536,1048576
+crc_type,buffer_size,throughput
+crc32_iscsi,16,3875.31
+crc32_iscsi,64,12069.33
+crc32_iscsi,256,25153.75
+crc32_iscsi,1024,26448.57
+crc32_iscsi,4096,24693.65
+crc32_iscsi,65536,25008.56
+crc32_iscsi,1048576,24653.90

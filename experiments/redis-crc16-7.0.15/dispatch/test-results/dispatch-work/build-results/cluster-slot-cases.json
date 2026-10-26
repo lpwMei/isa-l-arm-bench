@@ -1,0 +1,172 @@
+[
+  {
+    "key": "",
+    "expected": 0,
+    "got": 0
+  },
+  {
+    "key": "prefix{}suffix",
+    "expected": 12706,
+    "got": 12706
+  },
+  {
+    "key": "a",
+    "expected": 15495,
+    "got": 15495
+  },
+  {
+    "key": "prefix{a}suffix",
+    "expected": 15495,
+    "got": 15495
+  },
+  {
+    "key": "aaaaaaaaa",
+    "expected": 15490,
+    "got": 15490
+  },
+  {
+    "key": "prefix{aaaaaaaaa}suffix",
+    "expected": 15490,
+    "got": 15490
+  },
+  {
+    "key": "aaaaaaaaaaaaaaa",
+    "expected": 14472,
+    "got": 14472
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaa}suffix",
+    "expected": 14472,
+    "got": 14472
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaa",
+    "expected": 6800,
+    "got": 6800
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaa}suffix",
+    "expected": 6800,
+    "got": 6800
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaa",
+    "expected": 3700,
+    "got": 3700
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaa}suffix",
+    "expected": 3700,
+    "got": 3700
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 6405,
+    "got": 6405
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 6405,
+    "got": 6405
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 15007,
+    "got": 15007
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 15007,
+    "got": 15007
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 11730,
+    "got": 11730
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 11730,
+    "got": 11730
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 13685,
+    "got": 13685
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 13685,
+    "got": 13685
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 12145,
+    "got": 12145
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 12145,
+    "got": 12145
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 4302,
+    "got": 4302
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 4302,
+    "got": 4302
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 7073,
+    "got": 7073
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 7073,
+    "got": 7073
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 16093,
+    "got": 16093
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 16093,
+    "got": 16093
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 16094,
+    "got": 16094
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 16094,
+    "got": 16094
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 14886,
+    "got": 14886
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 14886,
+    "got": 14886
+  },
+  {
+    "key": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "expected": 7704,
+    "got": 7704
+  },
+  {
+    "key": "prefix{aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}suffix",
+    "expected": 7704,
+    "got": 7704
+  }
+]

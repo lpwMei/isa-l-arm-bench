@@ -1,0 +1,276 @@
+libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, 'build-aux'.
+libtoolize: linking file 'build-aux/ltmain.sh'
+libtoolize: Consider adding 'AC_CONFIG_MACRO_DIRS([m4])' to configure.ac,
+libtoolize: and rerunning libtoolize and aclocal.
+libtoolize: Consider adding '-I m4' to ACLOCAL_AMFLAGS in Makefile.am.
+configure.ac:22: installing 'build-aux/compile'
+configure.ac:24: installing 'build-aux/config.guess'
+configure.ac:24: installing 'build-aux/config.sub'
+configure.ac:11: installing 'build-aux/install-sh'
+configure.ac:11: installing 'build-aux/missing'
+Makefile.am: installing 'build-aux/depcomp'
+parallel-tests: installing 'build-aux/test-driver'
+
+----------------------------------------------------------------
+Initialized build system. For a common configuration please run:
+----------------------------------------------------------------
+
+./configure --prefix=/usr --libdir=/usr/lib
+
+checking for a BSD-compatible install... /usr/bin/install -c
+checking whether build environment is sane... yes
+checking for a race-free mkdir -p... /usr/bin/mkdir -p
+checking for gawk... gawk
+checking whether make sets $(MAKE)... yes
+checking whether make supports nested variables... yes
+checking how to create a pax tar archive... gnutar
+checking whether make supports the include directive... yes (GNU style)
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether the compiler supports GNU C... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to enable C11 features... none needed
+checking whether gcc understands -c and -o together... yes
+checking dependency style of gcc... gcc3
+checking dependency style of gcc... gcc3
+checking build system type... aarch64-unknown-linux-gnu
+checking host system type... aarch64-unknown-linux-gnu
+checking for gcc... (cached) gcc
+checking whether the compiler supports GNU C... (cached) yes
+checking whether gcc accepts -g... (cached) yes
+checking for gcc option to enable C11 features... (cached) none needed
+checking whether gcc understands -c and -o together... (cached) yes
+checking dependency style of gcc... (cached) gcc3
+checking for stdio.h... yes
+checking for stdlib.h... yes
+checking for string.h... yes
+checking for inttypes.h... yes
+checking for stdint.h... yes
+checking for strings.h... yes
+checking for sys/stat.h... yes
+checking for sys/types.h... yes
+checking for unistd.h... yes
+checking for wchar.h... yes
+checking for minix/config.h... no
+checking whether it is safe to define __EXTENSIONS__... yes
+checking whether _XOPEN_SOURCE should be defined... no
+checking whether make supports nested variables... (cached) yes
+checking how to print strings... printf
+checking for a sed that does not truncate output... /usr/bin/sed
+checking for grep that handles long lines and -e... /usr/bin/grep
+checking for egrep... /usr/bin/grep -E
+checking for fgrep... /usr/bin/grep -F
+checking for ld used by gcc... /usr/bin/ld
+checking if the linker (/usr/bin/ld) is GNU ld... yes
+checking for BSD- or MS-compatible name lister (nm)... /usr/bin/nm -B
+checking the name lister (/usr/bin/nm -B) interface... BSD nm
+checking whether ln -s works... yes
+checking the maximum length of command line arguments... 3145728
+checking how to convert aarch64-unknown-linux-gnu file names to aarch64-unknown-linux-gnu format... func_convert_file_noop
+checking how to convert aarch64-unknown-linux-gnu file names to toolchain format... func_convert_file_noop
+checking for /usr/bin/ld option to reload object files... -r
+checking for file... file
+checking for objdump... objdump
+checking how to recognize dependent libraries... pass_all
+checking for dlltool... no
+checking how to associate runtime and link libraries... printf %s\n
+checking for ar... ar
+checking for archiver @FILE support... @
+checking for strip... strip
+checking for ranlib... ranlib
+checking command to parse /usr/bin/nm -B output from gcc object... ok
+checking for sysroot... no
+checking for a working dd... /usr/bin/dd
+checking how to truncate binary pipes... /usr/bin/dd bs=4096 count=1
+checking for mt... mt
+checking if mt is a manifest tool... no
+checking for dlfcn.h... yes
+checking for objdir... .libs
+checking if gcc supports -fno-rtti -fno-exceptions... no
+checking for gcc option to produce PIC... -fPIC -DPIC
+checking if gcc PIC flag -fPIC -DPIC works... yes
+checking if gcc static flag -static works... yes
+checking if gcc supports -c -o file.o... yes
+checking if gcc supports -c -o file.o... (cached) yes
+checking whether the gcc linker (/usr/bin/ld) supports shared libraries... yes
+checking whether -lc should be explicitly linked in... no
+checking dynamic linker characteristics... GNU/Linux ld.so
+checking how to hardcode library paths into programs... immediate
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+checking for a sed that does not truncate output... (cached) /usr/bin/sed
+checking if Hygon CPU... no
+checking for limits.h... yes
+checking for stdint.h... (cached) yes
+checking for stdlib.h... (cached) yes
+checking for string.h... (cached) yes
+checking for inline... inline
+checking for size_t... yes
+checking for uint16_t... yes
+checking for uint32_t... yes
+checking for uint64_t... yes
+checking for uint8_t... yes
+checking for GNU libc compatible malloc... yes
+checking for memmove... yes
+checking for memset... yes
+checking for getopt... yes
+checking whether compiler supports -D_FORTIFY_SOURCE=3... yes
+checking that generated files are newer than configure... done
+configure: creating ./config.status
+config.status: creating Makefile
+config.status: creating libisal.pc
+config.status: executing depfiles commands
+config.status: executing libtool commands
+
+        isa-l 2.32.1
+        =====
+
+        prefix:                 /usr
+        sysconfdir:             ${prefix}/etc
+        libdir:                 ${exec_prefix}/lib
+        includedir:             ${prefix}/include
+
+        compiler:               gcc
+        cflags:                 -O3 -g
+        ldflags:                
+
+        debug:                  no
+
+Building isa-l.h
+make --no-print-directory all-am
+  CC       igzip/libisal_la-proc_heap_base.lo
+  CC       erasure_code/libisal_la-ec_base.lo
+  CC       raid/libisal_la-raid_base.lo
+  CC       crc/libisal_la-crc_base.lo
+  CC       crc/libisal_la-crc64_base.lo
+  CC       igzip/libisal_la-igzip.lo
+  CC       igzip/libisal_la-hufftables_c.lo
+  CC       igzip/libisal_la-igzip_base.lo
+  CC       igzip/libisal_la-igzip_icf_base.lo
+  CC       igzip/libisal_la-adler32_base.lo
+  CC       igzip/libisal_la-flatten_ll.lo
+  CC       igzip/libisal_la-encode_df.lo
+  CC       igzip/libisal_la-igzip_icf_body.lo
+  CC       igzip/libisal_la-huff_codes.lo
+  CC       igzip/libisal_la-igzip_inflate.lo
+  CC       mem/libisal_la-mem_zero_detect_base.lo
+  CC       misc/libisal_la-version.lo
+  CC       erasure_code/aarch64/libisal_la-ec_aarch64_highlevel_func.lo
+  CC       erasure_code/aarch64/libisal_la-ec_aarch64_dispatcher.lo
+  CPPAS    erasure_code/aarch64/gf_vect_dot_prod_neon.lo
+  CPPAS    erasure_code/aarch64/gf_2vect_dot_prod_neon.lo
+  CPPAS    erasure_code/aarch64/gf_3vect_dot_prod_neon.lo
+  CPPAS    erasure_code/aarch64/gf_4vect_dot_prod_neon.lo
+  CPPAS    erasure_code/aarch64/gf_5vect_dot_prod_neon.lo
+  CPPAS    erasure_code/aarch64/gf_vect_mad_neon.lo
+  CPPAS    erasure_code/aarch64/gf_2vect_mad_neon.lo
+  CPPAS    erasure_code/aarch64/gf_3vect_mad_neon.lo
+  CPPAS    erasure_code/aarch64/gf_4vect_mad_neon.lo
+  CPPAS    erasure_code/aarch64/gf_5vect_mad_neon.lo
+  CPPAS    erasure_code/aarch64/gf_6vect_mad_neon.lo
+  CPPAS    erasure_code/aarch64/gf_vect_mul_neon.lo
+  CPPAS    erasure_code/aarch64/gf_vect_mad_sve.lo
+  CPPAS    erasure_code/aarch64/gf_2vect_mad_sve.lo
+  CPPAS    erasure_code/aarch64/gf_3vect_mad_sve.lo
+  CPPAS    erasure_code/aarch64/gf_4vect_mad_sve.lo
+  CPPAS    erasure_code/aarch64/gf_5vect_mad_sve.lo
+  CPPAS    erasure_code/aarch64/gf_6vect_mad_sve.lo
+  CPPAS    erasure_code/aarch64/gf_vect_mul_sve.lo
+  CC       erasure_code/aarch64/libisal_la-gf_nvect_dot_prod_sve.lo
+  CPPAS    erasure_code/aarch64/ec_multibinary_arm.lo
+  CPPAS    raid/aarch64/xor_gen_neon.lo
+  CPPAS    raid/aarch64/pq_gen_neon.lo
+  CPPAS    raid/aarch64/xor_check_neon.lo
+  CPPAS    raid/aarch64/pq_check_neon.lo
+  CPPAS    raid/aarch64/raid_multibinary_arm.lo
+  CC       raid/aarch64/libisal_la-raid_aarch64_dispatcher.lo
+  CPPAS    crc/aarch64/crc_multibinary_arm.lo
+  CC       crc/aarch64/libisal_la-crc_aarch64_dispatcher.lo
+  CPPAS    crc/aarch64/crc16_t10dif_pmull.lo
+  CPPAS    crc/aarch64/crc16_t10dif_copy_pmull.lo
+  CPPAS    crc/aarch64/crc32_ieee_norm_pmull.lo
+  CPPAS    crc/aarch64/crc64_ecma_refl_pmull.lo
+  CPPAS    crc/aarch64/crc64_ecma_norm_pmull.lo
+  CPPAS    crc/aarch64/crc64_iso_refl_pmull.lo
+  CPPAS    crc/aarch64/crc64_iso_norm_pmull.lo
+  CPPAS    crc/aarch64/crc64_jones_refl_pmull.lo
+  CPPAS    crc/aarch64/crc64_jones_norm_pmull.lo
+  CPPAS    crc/aarch64/crc64_rocksoft_refl_pmull.lo
+  CPPAS    crc/aarch64/crc64_rocksoft_norm_pmull.lo
+  CPPAS    crc/aarch64/crc32_iscsi_refl_pmull.lo
+  CPPAS    crc/aarch64/crc32_gzip_refl_pmull.lo
+  CPPAS    crc/aarch64/crc32_iscsi_3crc_fold.lo
+  CPPAS    crc/aarch64/crc32_iscsi_p8c10.lo
+  CPPAS    crc/aarch64/crc32_iscsi_p8c10_clmul_const.lo
+  CPPAS    crc/aarch64/crc32_iscsi_x6.lo
+  CPPAS    crc/aarch64/crc32_gzip_refl_3crc_fold.lo
+  CPPAS    crc/aarch64/crc32_iscsi_crc_ext.lo
+  CPPAS    crc/aarch64/crc32_gzip_refl_crc_ext.lo
+  CPPAS    crc/aarch64/crc32_mix_default.lo
+  CPPAS    crc/aarch64/crc32c_mix_default.lo
+  CPPAS    crc/aarch64/crc32_mix_neoverse_n1.lo
+  CPPAS    crc/aarch64/crc32c_mix_neoverse_n1.lo
+  CPPAS    igzip/aarch64/igzip_inflate_multibinary_arm64.lo
+  CPPAS    igzip/aarch64/igzip_multibinary_arm64.lo
+  CPPAS    igzip/aarch64/igzip_isal_adler32_neon.lo
+  CC       igzip/aarch64/libisal_la-igzip_multibinary_aarch64_dispatcher.lo
+  CPPAS    igzip/aarch64/igzip_deflate_body_aarch64.lo
+  CPPAS    igzip/aarch64/igzip_deflate_finish_aarch64.lo
+  CPPAS    igzip/aarch64/isal_deflate_icf_body_hash_hist.lo
+  CPPAS    igzip/aarch64/isal_deflate_icf_finish_hash_hist.lo
+  CPPAS    igzip/aarch64/igzip_set_long_icf_fg.lo
+  CPPAS    igzip/aarch64/encode_df.lo
+  CPPAS    igzip/aarch64/isal_update_histogram.lo
+  CPPAS    igzip/aarch64/gen_icf_map.lo
+  CPPAS    igzip/aarch64/igzip_deflate_hash_aarch64.lo
+  CPPAS    igzip/aarch64/igzip_decode_huffman_code_block_aarch64.lo
+  CPPAS    mem/aarch64/mem_zero_detect_neon.lo
+  CPPAS    mem/aarch64/mem_multibinary_arm.lo
+  CC       mem/aarch64/libisal_la-mem_aarch64_dispatcher.lo
+  CCLD     libisal.la
+  CC       erasure_code/gf_vect_mul_perf.o
+  CC       erasure_code/gf_vect_dot_prod_perf.o
+  CC       erasure_code/gf_vect_dot_prod_1tbl.o
+  CC       erasure_code/erasure_code_perf.o
+  CC       erasure_code/erasure_code_base_perf.o
+  CC       erasure_code/erasure_code_update_perf.o
+  CC       raid/xor_gen_perf.o
+  CC       raid/pq_gen_perf.o
+  CC       raid/raid_funcs_perf.o
+  CC       crc/crc16_t10dif_perf.o
+  CC       crc/crc16_t10dif_copy_perf.o
+  CC       crc/crc16_t10dif_op_perf.o
+  CC       crc/crc32_ieee_perf.o
+  CC       crc/crc32_iscsi_perf.o
+  CC       crc/crc64_funcs_perf.o
+  CC       crc/crc32_gzip_refl_perf.o
+  CC       crc/crc_funcs_perf.o
+  CC       igzip/adler32_perf.o
+  CC       mem/mem_zero_detect_perf.o
+  CCLD     erasure_code/gf_vect_mul_perf
+  CCLD     erasure_code/gf_vect_dot_prod_perf
+  CCLD     erasure_code/gf_vect_dot_prod_1tbl
+  CCLD     erasure_code/erasure_code_perf
+  CCLD     erasure_code/erasure_code_base_perf
+  CCLD     erasure_code/erasure_code_update_perf
+  CCLD     raid/xor_gen_perf
+  CCLD     raid/pq_gen_perf
+  CCLD     raid/raid_funcs_perf
+  CCLD     crc/crc16_t10dif_perf
+  CCLD     crc/crc16_t10dif_copy_perf
+  CCLD     crc/crc16_t10dif_op_perf
+  CCLD     crc/crc32_ieee_perf
+  CCLD     crc/crc32_iscsi_perf
+  CCLD     crc/crc64_funcs_perf
+  CCLD     crc/crc32_gzip_refl_perf
+  CCLD     crc/crc_funcs_perf
+  CCLD     igzip/adler32_perf
+  CCLD     mem/mem_zero_detect_perf
+  CC       igzip/igzip_perf.o
+  CCLD     igzip/igzip_perf

@@ -1,0 +1,5 @@
+Testing with 10 data buffers and 6 parity buffers (num errors = 1, in [ 14 ])
+erasure_code_perf: 16x65536 1
+erasure_code_encode_warm: runtime =    3000365 usecs, bandwidth 16389 MB in 3.0004 sec = 5462.42 MB/s
+erasure_code_decode_warm: runtime =    3062653 usecs, bandwidth 64469 MB in 3.0627 sec = 21050.29 MB/s
+done all: Pass

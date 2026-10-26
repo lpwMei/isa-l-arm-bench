@@ -1,0 +1,7 @@
+igzip_perf-> compress level: 1 flush_type: 0 block_size: 4096
+  file info-> name: /home/runner/work/_temp/isa-l-arm-experiment/corpus/json-lines.bin file_size: 3122450 compress_size: 219876 ratio: 7.04%
+
+    isal_stateless_deflate-> runtime =       3062 usecs
+
+    isal_stateless_inflate-> runtime =    3001070 usecs, bandwidth 5860 MB in 3.0011 sec = 1952.92 MB/s
+    isal_stateless_inflate-> runtime =    3062649 usecs, bandwidth 5651 MB in 3.0626 sec = 1845.34 MB/s

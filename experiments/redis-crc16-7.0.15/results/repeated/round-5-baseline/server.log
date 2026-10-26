@@ -1,0 +1,12 @@
+139:C 26 Oct 2026 09:34:27.918 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+139:C 26 Oct 2026 09:34:27.918 # Redis version=7.0.15, bits=64, commit=00000000, modified=0, pid=139, just started
+139:C 26 Oct 2026 09:34:27.918 # Configuration loaded
+139:M 26 Oct 2026 09:34:27.919 * monotonic clock: POSIX clock_gettime
+139:M 26 Oct 2026 09:34:27.920 * No cluster configuration found, I'm 535e8ed8aeed3f2d6eb167f8ec1c8e21c2564a77
+139:M 26 Oct 2026 09:34:27.920 * Running mode=cluster, port=36380.
+139:M 26 Oct 2026 09:34:27.920 # Server initialized
+139:M 26 Oct 2026 09:34:27.920 # WARNING Memory overcommit must be enabled! Without it, a background save or replication may fail under low memory condition. Being disabled, it can can also cause failures without low memory condition, see https://github.com/jemalloc/jemalloc/issues/1328. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+139:M 26 Oct 2026 09:34:27.923 * Ready to accept connections
+139:M 26 Oct 2026 09:34:29.942 # Cluster state changed: ok
+139:M 26 Oct 2026 09:34:55.472 # User requested shutdown...
+139:M 26 Oct 2026 09:34:55.472 # Redis is now ready to exit, bye bye...

@@ -1,0 +1,15 @@
+{
+  "upstream_commit": "f8e9dbea5bd065823f0f77532136851e1d25dd0c",
+  "selection": "User-approved original dispatch plus short-tail correction",
+  "files": {
+    "crc16_xmodem_dispatch.c": "9301bc6a92c3f0af7c44ce77e641c8eb3e2566bf4e07bda156af381f065d4145",
+    "crc16_xmodem_constants.h": "4e65f43b6f1f452ffaf6aaab5fe271fd96d7a7c65aefd5cab4058f7fd435ca69",
+    "crc16_xmodem_pmull.S": "37beba0f81ba0f746507f084beb0ee04f4baaa0bcac825ffad1a4cdd4147d483",
+    "crc16_xmodem_short.S": "03616339f726ce4a4c08d162a132e4279df21a643f8c4a732d4b117eacb94518",
+    "crc16_xmodem_pmull_8way.S": "c416ab6ae6fd2396fa481efc610012dd9f515405e5c87c22617552c97deb42c6",
+    "crc16_xmodem_pmull_opt.S": "cac2aa9437088231abea11fbc0528bb91a5f5473bf8dbd461dc282e74bec0b6e"
+  },
+  "changed_upstream_files": [
+    "crc16_xmodem_short.S"
+  ]
+}

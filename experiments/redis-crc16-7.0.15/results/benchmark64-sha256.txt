@@ -1,0 +1,1 @@
+d3c75c8471aa9bb83d0c223eb72939e59c1f80184069c13ae5d2391218e18402  baseline/src/redis-benchmark

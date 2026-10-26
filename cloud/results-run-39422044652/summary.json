@@ -1,0 +1,352 @@
+[
+  {
+    "case": "crc/crc16_t10dif/1024B",
+    "baseline_median_MB_s": 15838.46,
+    "upstream_median_MB_s": 15836.44,
+    "gain_pct_ratio_of_medians": -0.01,
+    "gain_pct_median_of_paired_ratios": -0.01,
+    "baseline_cv_pct": 0.02,
+    "upstream_cv_pct": 0.01,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc16_t10dif/1048576B",
+    "baseline_median_MB_s": 17169.55,
+    "upstream_median_MB_s": 17296.94,
+    "gain_pct_ratio_of_medians": 0.74,
+    "gain_pct_median_of_paired_ratios": 1.0,
+    "baseline_cv_pct": 0.29,
+    "upstream_cv_pct": 0.53,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc16_t10dif/16B",
+    "baseline_median_MB_s": 1007.58,
+    "upstream_median_MB_s": 1009.4,
+    "gain_pct_ratio_of_medians": 0.18,
+    "gain_pct_median_of_paired_ratios": 0.18,
+    "baseline_cv_pct": 0.0,
+    "upstream_cv_pct": 0.01,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc16_t10dif/256B",
+    "baseline_median_MB_s": 11528.5,
+    "upstream_median_MB_s": 11528.84,
+    "gain_pct_ratio_of_medians": 0.0,
+    "gain_pct_median_of_paired_ratios": 0.01,
+    "baseline_cv_pct": 0.01,
+    "upstream_cv_pct": 0.02,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc16_t10dif/4096B",
+    "baseline_median_MB_s": 17472.66,
+    "upstream_median_MB_s": 17472.56,
+    "gain_pct_ratio_of_medians": -0.0,
+    "gain_pct_median_of_paired_ratios": -0.01,
+    "baseline_cv_pct": 0.01,
+    "upstream_cv_pct": 0.01,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc16_t10dif/64B",
+    "baseline_median_MB_s": 6044.51,
+    "upstream_median_MB_s": 6042.23,
+    "gain_pct_ratio_of_medians": -0.04,
+    "gain_pct_median_of_paired_ratios": -0.04,
+    "baseline_cv_pct": 0.02,
+    "upstream_cv_pct": 0.02,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc16_t10dif/65536B",
+    "baseline_median_MB_s": 18048.77,
+    "upstream_median_MB_s": 18048.81,
+    "gain_pct_ratio_of_medians": 0.0,
+    "gain_pct_median_of_paired_ratios": 0.0,
+    "baseline_cv_pct": 0.0,
+    "upstream_cv_pct": 0.0,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_gzip_refl/1024B",
+    "baseline_median_MB_s": 26123.1,
+    "upstream_median_MB_s": 26032.42,
+    "gain_pct_ratio_of_medians": -0.35,
+    "gain_pct_median_of_paired_ratios": -0.33,
+    "baseline_cv_pct": 0.07,
+    "upstream_cv_pct": 0.05,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_gzip_refl/1048576B",
+    "baseline_median_MB_s": 25887.3,
+    "upstream_median_MB_s": 25907.08,
+    "gain_pct_ratio_of_medians": 0.08,
+    "gain_pct_median_of_paired_ratios": 0.15,
+    "baseline_cv_pct": 0.45,
+    "upstream_cv_pct": 0.52,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_gzip_refl/16B",
+    "baseline_median_MB_s": 4288.09,
+    "upstream_median_MB_s": 4635.48,
+    "gain_pct_ratio_of_medians": 8.1,
+    "gain_pct_median_of_paired_ratios": 7.74,
+    "baseline_cv_pct": 4.22,
+    "upstream_cv_pct": 7.19,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_gzip_refl/256B",
+    "baseline_median_MB_s": 26426.67,
+    "upstream_median_MB_s": 26432.71,
+    "gain_pct_ratio_of_medians": 0.02,
+    "gain_pct_median_of_paired_ratios": -0.03,
+    "baseline_cv_pct": 1.17,
+    "upstream_cv_pct": 0.63,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_gzip_refl/4096B",
+    "baseline_median_MB_s": 26126.58,
+    "upstream_median_MB_s": 26151.21,
+    "gain_pct_ratio_of_medians": 0.09,
+    "gain_pct_median_of_paired_ratios": 0.09,
+    "baseline_cv_pct": 0.01,
+    "upstream_cv_pct": 0.04,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_gzip_refl/64B",
+    "baseline_median_MB_s": 18085.35,
+    "upstream_median_MB_s": 18058.85,
+    "gain_pct_ratio_of_medians": -0.15,
+    "gain_pct_median_of_paired_ratios": -0.11,
+    "baseline_cv_pct": 4.34,
+    "upstream_cv_pct": 1.53,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_gzip_refl/65536B",
+    "baseline_median_MB_s": 26135.67,
+    "upstream_median_MB_s": 26131.94,
+    "gain_pct_ratio_of_medians": -0.01,
+    "gain_pct_median_of_paired_ratios": -0.02,
+    "baseline_cv_pct": 0.04,
+    "upstream_cv_pct": 0.01,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_iscsi/1024B",
+    "baseline_median_MB_s": 25551.22,
+    "upstream_median_MB_s": 26473.14,
+    "gain_pct_ratio_of_medians": 3.61,
+    "gain_pct_median_of_paired_ratios": 3.59,
+    "baseline_cv_pct": 0.01,
+    "upstream_cv_pct": 0.22,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_iscsi/1048576B",
+    "baseline_median_MB_s": 25743.89,
+    "upstream_median_MB_s": 24572.91,
+    "gain_pct_ratio_of_medians": -4.55,
+    "gain_pct_median_of_paired_ratios": -4.61,
+    "baseline_cv_pct": 0.39,
+    "upstream_cv_pct": 0.32,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_iscsi/16B",
+    "baseline_median_MB_s": 4075.07,
+    "upstream_median_MB_s": 3874.97,
+    "gain_pct_ratio_of_medians": -4.91,
+    "gain_pct_median_of_paired_ratios": -4.91,
+    "baseline_cv_pct": 7.83,
+    "upstream_cv_pct": 0.01,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_iscsi/256B",
+    "baseline_median_MB_s": 26143.81,
+    "upstream_median_MB_s": 25209.91,
+    "gain_pct_ratio_of_medians": -3.57,
+    "gain_pct_median_of_paired_ratios": -3.57,
+    "baseline_cv_pct": 0.01,
+    "upstream_cv_pct": 0.3,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_iscsi/4096B",
+    "baseline_median_MB_s": 26026.23,
+    "upstream_median_MB_s": 24707.31,
+    "gain_pct_ratio_of_medians": -5.07,
+    "gain_pct_median_of_paired_ratios": -5.07,
+    "baseline_cv_pct": 0.0,
+    "upstream_cv_pct": 0.03,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_iscsi/64B",
+    "baseline_median_MB_s": 15442.42,
+    "upstream_median_MB_s": 12069.26,
+    "gain_pct_ratio_of_medians": -21.84,
+    "gain_pct_median_of_paired_ratios": -21.86,
+    "baseline_cv_pct": 0.03,
+    "upstream_cv_pct": 0.01,
+    "samples_per_version": 5
+  },
+  {
+    "case": "crc/crc32_iscsi/65536B",
+    "baseline_median_MB_s": 26125.66,
+    "upstream_median_MB_s": 25002.1,
+    "gain_pct_ratio_of_medians": -4.3,
+    "gain_pct_median_of_paired_ratios": -4.3,
+    "baseline_cv_pct": 0.03,
+    "upstream_cv_pct": 0.09,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p2/decode/64KiB",
+    "baseline_median_MB_s": 21257.84,
+    "upstream_median_MB_s": 45872.13,
+    "gain_pct_ratio_of_medians": 115.79,
+    "gain_pct_median_of_paired_ratios": 115.97,
+    "baseline_cv_pct": 0.27,
+    "upstream_cv_pct": 2.39,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p2/encode/64KiB",
+    "baseline_median_MB_s": 14591.79,
+    "upstream_median_MB_s": 19036.48,
+    "gain_pct_ratio_of_medians": 30.46,
+    "gain_pct_median_of_paired_ratios": 30.3,
+    "baseline_cv_pct": 0.37,
+    "upstream_cv_pct": 0.46,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p4/decode/64KiB",
+    "baseline_median_MB_s": 21186.41,
+    "upstream_median_MB_s": 47973.06,
+    "gain_pct_ratio_of_medians": 126.43,
+    "gain_pct_median_of_paired_ratios": 125.82,
+    "baseline_cv_pct": 0.35,
+    "upstream_cv_pct": 1.54,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p4/encode/64KiB",
+    "baseline_median_MB_s": 9866.54,
+    "upstream_median_MB_s": 8426.99,
+    "gain_pct_ratio_of_medians": -14.59,
+    "gain_pct_median_of_paired_ratios": -14.41,
+    "baseline_cv_pct": 0.68,
+    "upstream_cv_pct": 0.29,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p6/decode/64KiB",
+    "baseline_median_MB_s": 21134.56,
+    "upstream_median_MB_s": 21079.34,
+    "gain_pct_ratio_of_medians": -0.26,
+    "gain_pct_median_of_paired_ratios": -0.34,
+    "baseline_cv_pct": 0.13,
+    "upstream_cv_pct": 0.34,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p6/encode/64KiB",
+    "baseline_median_MB_s": 7104.31,
+    "upstream_median_MB_s": 6168.01,
+    "gain_pct_ratio_of_medians": -13.18,
+    "gain_pct_median_of_paired_ratios": -13.64,
+    "baseline_cv_pct": 0.42,
+    "upstream_cv_pct": 0.49,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p7/decode/64KiB",
+    "baseline_median_MB_s": 21262.28,
+    "upstream_median_MB_s": 44133.68,
+    "gain_pct_ratio_of_medians": 107.57,
+    "gain_pct_median_of_paired_ratios": 107.78,
+    "baseline_cv_pct": 0.14,
+    "upstream_cv_pct": 1.35,
+    "samples_per_version": 5
+  },
+  {
+    "case": "ec/ec-k10-p7/encode/64KiB",
+    "baseline_median_MB_s": 6676.54,
+    "upstream_median_MB_s": 5688.9,
+    "gain_pct_ratio_of_medians": -14.79,
+    "gain_pct_median_of_paired_ratios": -14.76,
+    "baseline_cv_pct": 0.14,
+    "upstream_cv_pct": 0.5,
+    "samples_per_version": 5
+  },
+  {
+    "case": "inflate/binary/stateful",
+    "baseline_median_MB_s": 5958.06,
+    "upstream_median_MB_s": 5909.38,
+    "gain_pct_ratio_of_medians": -0.82,
+    "gain_pct_median_of_paired_ratios": -0.13,
+    "baseline_cv_pct": 0.84,
+    "upstream_cv_pct": 0.67,
+    "samples_per_version": 5
+  },
+  {
+    "case": "inflate/binary/stateless",
+    "baseline_median_MB_s": 26452.61,
+    "upstream_median_MB_s": 26516.57,
+    "gain_pct_ratio_of_medians": 0.24,
+    "gain_pct_median_of_paired_ratios": 0.37,
+    "baseline_cv_pct": 0.3,
+    "upstream_cv_pct": 0.22,
+    "samples_per_version": 5
+  },
+  {
+    "case": "inflate/json-lines/stateful",
+    "baseline_median_MB_s": 1846.26,
+    "upstream_median_MB_s": 1842.68,
+    "gain_pct_ratio_of_medians": -0.19,
+    "gain_pct_median_of_paired_ratios": -0.14,
+    "baseline_cv_pct": 0.05,
+    "upstream_cv_pct": 0.05,
+    "samples_per_version": 5
+  },
+  {
+    "case": "inflate/json-lines/stateless",
+    "baseline_median_MB_s": 1955.72,
+    "upstream_median_MB_s": 1951.43,
+    "gain_pct_ratio_of_medians": -0.22,
+    "gain_pct_median_of_paired_ratios": -0.23,
+    "baseline_cv_pct": 0.09,
+    "upstream_cv_pct": 0.04,
+    "samples_per_version": 5
+  },
+  {
+    "case": "inflate/repeated/stateful",
+    "baseline_median_MB_s": 5056.69,
+    "upstream_median_MB_s": 5058.37,
+    "gain_pct_ratio_of_medians": 0.03,
+    "gain_pct_median_of_paired_ratios": 0.03,
+    "baseline_cv_pct": 0.18,
+    "upstream_cv_pct": 0.15,
+    "samples_per_version": 5
+  },
+  {
+    "case": "inflate/repeated/stateless",
+    "baseline_median_MB_s": 5111.92,
+    "upstream_median_MB_s": 5112.24,
+    "gain_pct_ratio_of_medians": 0.01,
+    "gain_pct_median_of_paired_ratios": 0.11,
+    "baseline_cv_pct": 0.15,
+    "upstream_cv_pct": 0.15,
+    "samples_per_version": 5
+  }
+]

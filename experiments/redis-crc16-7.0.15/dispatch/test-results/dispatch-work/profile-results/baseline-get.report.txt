@@ -1,0 +1,175 @@
+# To display the perf.data header info, please use --header/--header-only options.
+#
+#
+# Total Lost Samples: 0
+#
+# Samples: 5K of event 'cycles:u'
+# Event count (approx.): 53940914765
+#
+# Overhead  Shared Object          Symbol                                        IPC   [IPC Coverage]
+# ........  .....................  ............................................  ....................
+#
+    30.15%  redis-server-baseline  [.] crc16                                     -      -            
+     7.43%  redis-server-baseline  [.] je_malloc_usable_size                     -      -            
+     4.99%  redis-server-baseline  [.] keyHashSlot                               -      -            
+     4.09%  redis-server-baseline  [.] dictFind                                  -      -            
+     4.04%  redis-server-baseline  [.] getNodeByQuery                            -      -            
+     3.92%  redis-server-baseline  [.] je_malloc                                 -      -            
+     3.72%  redis-server-baseline  [.] je_free                                   -      -            
+     3.71%  [vdso]                 [.] 0x00000000000002d4                        -      -            
+     3.13%  [vdso]                 [.] 0x00000000000002f0                        -      -            
+     2.11%  redis-server-baseline  [.] processMultibulkBuffer                    -      -            
+     1.84%  libc.so.6              [.] 0x0000000000099c64                        -      -            
+     1.59%  [vdso]                 [.] 0x0000000000000300                        -      -            
+     1.54%  redis-server-baseline  [.] call                                      -      -            
+     1.53%  libc.so.6              [.] 0x000000000009af78                        -      -            
+     1.21%  redis-server-baseline  [.] processCommand                            -      -            
+     1.02%  [unknown]              [k] 0xffffb667e1285194                        -      -            
+     1.01%  redis-server-baseline  [.] siphash                                   -      -            
+     0.90%  libc.so.6              [.] 0x00000000000940f4                        -      -            
+     0.70%  redis-server-baseline  [.] processInputBuffer                        -      -            
+     0.70%  libc.so.6              [.] 0x00000000000936e8                        -      -            
+     0.69%  redis-server-baseline  [.] hdr_record_values                         -      -            
+     0.65%  redis-server-baseline  [.] _addReplyToBufferOrList                   -      -            
+     0.65%  redis-server-baseline  [.] readQueryFromClient                       -      -            
+     0.64%  redis-server-baseline  [.] _sdsnewlen                                -      -            
+     0.64%  redis-server-baseline  [.] dictSdsKeyCompare                         -      -            
+     0.60%  redis-server-baseline  [.] prepareClientToWrite                      -      -            
+     0.60%  redis-server-baseline  [.] decrRefCount                              -      -            
+     0.57%  libc.so.6              [.] 0x0000000000094120                        -      -            
+     0.55%  redis-server-baseline  [.] zfree                                     -      -            
+     0.52%  libc.so.6              [.] 0x00000000000994e0                        -      -            
+     0.50%  redis-server-baseline  [.] addReply.part.0                           -      -            
+     0.45%  redis-server-baseline  [.] string2ll.part.0                          -      -            
+     0.42%  libc.so.6              [.] 0x0000000000093700                        -      -            
+     0.40%  redis-server-baseline  [.] performEvictions                          -      -            
+     0.37%  redis-server-baseline  [.] updateClientMemUsageAndBucket             -      -            
+     0.35%  redis-server-baseline  [.] addReplyBulk                              -      -            
+     0.34%  redis-server-baseline  [.] siphash_nocase                            -      -            
+     0.33%  redis-server-baseline  [.] clientHasPendingReplies                   -      -            
+     0.33%  libc.so.6              [.] 0x0000000000094144                        -      -            
+     0.30%  redis-server-baseline  [.] zmalloc                                   -      -            
+     0.30%  redis-server-baseline  [.] listNext                                  -      -            
+     0.30%  redis-server-baseline  [.] getCommandFlags                           -      -            
+     0.30%  redis-server-baseline  [.] getKeysUsingLegacyRangeSpec               -      -            
+     0.28%  libc.so.6              [.] 0x00000000000936ec                        -      -            
+     0.28%  redis-server-baseline  [.] createEmbeddedStringObject                -      -            
+     0.27%  redis-server-baseline  [.] aeProcessEvents.part.0                    -      -            
+     0.27%  libc.so.6              [.] 0x000000000009370c                        -      -            
+     0.25%  redis-server-baseline  [.] resetClient                               -      -            
+     0.23%  redis-server-baseline  [.] scriptIsTimedout                          -      -            
+     0.22%  redis-server-baseline  [.] ACLSelectorCheckCmd                       -      -            
+     0.22%  redis-server-baseline  [.] getKeysPrepareResult                      -      -            
+     0.22%  libc.so.6              [.] 0x00000000000936e0                        -      -            
+     0.22%  redis-server-baseline  [.] isInsideYieldingLongCommand               -      -            
+     0.20%  [vdso]                 [.] 0x000000000000036c                        -      -            
+     0.20%  redis-server-baseline  [.] counts_index_for                          -      -            
+     0.20%  libc.so.6              [.] 0x000000000009af74                        -      -            
+     0.19%  libc.so.6              [.] 0x0000000000094110                        -      -            
+     0.18%  redis-server-baseline  [.] addReplyLongLongWithPrefix                -      -            
+     0.17%  redis-server-baseline  [.] commandCheckArity                         -      -            
+     0.17%  redis-server-baseline  [.] createObject                              -      -            
+     0.17%  redis-server-baseline  [.] getKeysFromCommand                        -      -            
+     0.17%  redis-server-baseline  [.] lookupCommandLogic                        -      -            
+     0.17%  redis-server-baseline  [.] getGenericCommand                         -      -            
+     0.17%  redis-server-baseline  [.] lookupKey                                 -      -            
+     0.17%  redis-server-baseline  [.] handleClientsWithPendingWrites            -      -            
+     0.17%  libc.so.6              [.] 0x00000000000936fc                        -      -            
+     0.15%  redis-server-baseline  [.] expireIfNeeded                            -      -            
+     0.13%  redis-server-baseline  [.] strcasecmp@plt                            -      -            
+     0.12%  redis-server-baseline  [.] moduleCallCommandFilters                  -      -            
+     0.12%  libc.so.6              [.] 0x0000000000099604                        -      -            
+     0.12%  libc.so.6              [.] 0x00000000000936d8                        -      -            
+     0.12%  redis-server-baseline  [.] _writeToClient                            -      -            
+     0.12%  redis-server-baseline  [.] stringObjectLen                           -      -            
+     0.12%  redis-server-baseline  [.] strchr@plt                                -      -            
+     0.12%  redis-server-baseline  [.] memcpy@plt                                -      -            
+     0.12%  redis-server-baseline  [.] string2ll                                 -      -            
+     0.12%  redis-server-baseline  [.] ACLCheckAllUserCommandPerm                -      -            
+     0.10%  redis-server-baseline  [.] extend_to_usable                          -      -            
+     0.10%  redis-server-baseline  [.] commandProcessed                          -      -            
+     0.10%  redis-server-baseline  [.] hasActiveChildProcess                     -      -            
+     0.10%  redis-server-baseline  [.] trackingHandlePendingKeyInvalidations     -      -            
+     0.10%  redis-server-baseline  [.] getExpire                                 -      -            
+     0.10%  redis-server-baseline  [.] slowlogPushEntryIfNeeded                  -      -            
+     0.10%  redis-server-baseline  [.] connSocketEventHandler                    -      -            
+     0.08%  redis-server-baseline  [.] checkType                                 -      -            
+     0.08%  redis-server-baseline  [.] je_free_default                           -      -            
+     0.08%  redis-server-baseline  [.] lookupKeyReadOrReply                      -      -            
+     0.08%  redis-server-baseline  [.] ACLCheckAllPerm                           -      -            
+     0.08%  redis-server-baseline  [.] listRewind                                -      -            
+     0.08%  libc.so.6              [.] 0x0000000000099c58                        -      -            
+     0.08%  libc.so.6              [.] 0x00000000000936f0                        -      -            
+     0.07%  redis-server-baseline  [.] checkClientPauseTimeoutAndReturnIfPaused  -      -            
+     0.07%  redis-server-baseline  [.] freeClientOriginalArgv                    -      -            
+     0.07%  redis-server-baseline  [.] je_tcache_event_hard                      -      -            
+     0.07%  libc.so.6              [.] 0x00000000000940dc                        -      -            
+     0.07%  redis-server-baseline  [.] je_malloc_default                         -      -            
+     0.07%  libc.so.6              [.] 0x0000000000099c6c                        -      -            
+     0.07%  redis-server-baseline  [.] evictClients                              -      -            
+     0.07%  libc.so.6              [.] 0x000000000009af64                        -      -            
+     0.07%  redis-server-baseline  [.] dictSdsHash                               -      -            
+     0.07%  [vdso]                 [.] 0x00000000000002c0                        -      -            
+     0.07%  redis-server-baseline  [.] zmalloc_usable                            -      -            
+     0.07%  libc.so.6              [.] 0x0000000000099c40                        -      -            
+     0.07%  libc.so.6              [.] 0x00000000000940c0                        -      -            
+     0.07%  libc.so.6              [.] 0x0000000000099c68                        -      -            
+     0.05%  redis-server-baseline  [.] monotonicGetType                          -      -            
+     0.05%  redis-server-baseline  [.] LRU_CLOCK                                 -      -            
+     0.05%  redis-server-baseline  [.] writeCommandsDeniedByDiskError            -      -            
+     0.05%  libc.so.6              [.] 0x00000000000936c0                        -      -            
+     0.05%  libc.so.6              [.] 0x000000000009af70                        -      -            
+     0.05%  redis-server-baseline  [.] createStringObject                        -      -            
+     0.05%  redis-server-baseline  [.] zmalloc_used_memory                       -      -            
+     0.05%  redis-server-baseline  [.] dictFetchValue                            -      -            
+     0.05%  redis-server-baseline  [.] ctl_refresh                               -      -            
+     0.05%  redis-server-baseline  [.] replicationFeedMonitors                   -      -            
+     0.05%  libc.so.6              [.] 0x0000000000099c60                        -      -            
+     0.05%  redis-server-baseline  [.] dictGenCaseHashFunction                   -      -            
+     0.05%  redis-server-baseline  [.] propagatePendingCommands                  -      -            
+     0.04%  redis-server-baseline  [.] memcmp@plt                                -      -            
+     0.03%  libc.so.6              [.] 0x000000000009af10                        -      -            
+     0.03%  redis-server-baseline  [.] sdssubstr                                 -      -            
+     0.03%  libc.so.6              [.] 0x00000000000936cc                        -      -            
+     0.03%  libc.so.6              [.] 0x000000000009af4c                        -      -            
+     0.03%  [vdso]                 [.] 0x00000000000002d0                        -      -            
+     0.03%  redis-server-baseline  [.] authRequired                              -      -            
+     0.03%  redis-server-baseline  [.] gettimeofday@plt                          -      -            
+     0.03%  redis-server-baseline  [.] dictSdsCaseHash                           -      -            
+     0.03%  libc.so.6              [.] 0x00000000000936dc                        -      -            
+     0.03%  libc.so.6              [.] 0x000000000009af40                        -      -            
+     0.03%  libc.so.6              [.] 0x000000000009af30                        -      -            
+     0.03%  redis-server-baseline  [.] dictSdsKeyCaseCompare                     -      -            
+     0.02%  libc.so.6              [.] 0x00000000000b2b28                        -      -            
+     0.02%  redis-server-baseline  [.] arena_decay_to_limit                      -      -            
+     0.02%  redis-server-baseline  [.] memset@plt                                -      -            
+     0.02%  libc.so.6              [.] 0x000000000009aed0                        -      -            
+     0.02%  libc.so.6              [.] 0x0000000000083384                        -      -            
+     0.02%  redis-server-baseline  [.] je_tcache_bin_flush_small                 -      -            
+     0.02%  redis-server-baseline  [.] connSocketWrite                           -      -            
+     0.02%  redis-server-baseline  [.] getKeysFreeResult                         -      -            
+     0.02%  redis-server-baseline  [.] je_arena_stats_merge                      -      -            
+     0.02%  libc.so.6              [.] 0x00000000000de580                        -      -            
+     0.02%  libc.so.6              [.] 0x000000000009aec0                        -      -            
+     0.02%  libc.so.6              [.] 0x000000000009af6c                        -      -            
+     0.02%  libc.so.6              [.] 0x00000000000b2b30                        -      -            
+     0.02%  libc.so.6              [.] 0x000000000009af44                        -      -            
+     0.02%  libc.so.6              [.] 0x000000000007c354                        -      -            
+     0.02%  redis-server-baseline  [.] _sdsMakeRoomFor                           -      -            
+     0.02%  redis-server-baseline  [.] listAddNodeHead                           -      -            
+     0.02%  libc.so.6              [.] 0x000000000009af60                        -      -            
+     0.02%  redis-server-baseline  [.] sdsrange                                  -      -            
+     0.02%  libc.so.6              [.] 0x0000000000083e18                        -      -            
+     0.02%  [vdso]                 [.] 0x000000000000072c                        -      -            
+     0.02%  libc.so.6              [.] 0x00000000000936d4                        -      -            
+     0.02%  [vdso]                 [.] 0x0000000000000728                        -      -            
+     0.02%  redis-server-baseline  [.] __aarch64_ldadd8_relax                    -      -            
+     0.00%  redis-server-baseline  [.] je_extents_evict                          -      -            
+     0.00%  libc.so.6              [.] 0x000000000007f064                        -      -            
+     0.00%  libc.so.6              [.] 0x000000000007c400                        -      -            
+     0.00%  libc.so.6              [.] 0x000000000007c788                        -      -            
+
+
+#
+# (Tip: See assembly instructions with percentage: perf annotate <symbol>)
+#

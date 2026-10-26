@@ -1,0 +1,9 @@
+# Archive exact bytes so published SHA256 manifests remain valid.
+* -text
+*.data binary
+*.zip binary
+*.gz binary
+*.tar binary
+*.png binary
+*.rdb binary
+*.pyd binary

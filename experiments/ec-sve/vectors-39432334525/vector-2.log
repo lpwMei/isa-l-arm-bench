@@ -1,0 +1,2 @@
+SVE vector length: 32 bytes
+PASS: 2244 matrix/length cases, 8748 encoder calls, exact-sized guarded tables/data
